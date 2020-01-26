@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'com.ibm.icu', name: 'icu4j-charset', version: '65.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
