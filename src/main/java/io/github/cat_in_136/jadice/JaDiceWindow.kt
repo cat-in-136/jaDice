@@ -3,6 +3,7 @@ package io.github.cat_in_136.jadice
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import io.github.cat_in_136.misc.escapeHtml
 import java.awt.BorderLayout
+import java.util.prefs.PreferenceChangeListener
 import javax.swing.*
 import javax.swing.event.ChangeListener
 
@@ -46,19 +47,28 @@ class JaDiceWindow : JFrame() {
             JaDicePreferencePane().showDialog(this)
         }
 
-        searchTextBox.document.addDocumentListener(TimedTextChangeAdapter(100, ChangeListener {
-            worker.search(searchTextBox.text).whenComplete { result, throwable ->
-                if (throwable != null) {
-                    throw throwable
-                }
-                if (result != null) {
-                    setTextToResultView(result)
-                }
-            }
-        }))
+        val timedTextChangeAdapter = TimedTextChangeAdapter(
+                DicePreferenceService.prefSearchForDelay,
+                ChangeListener {
+                    worker.search(searchTextBox.text).whenComplete { result, throwable ->
+                        if (throwable != null) {
+                            throw throwable
+                        }
+                        if (result != null) {
+                            setTextToResultView(result)
+                        }
+                    }
+                })
+        searchTextBox.document.addDocumentListener(timedTextChangeAdapter)
         hamburgerButton.addActionListener {
             popupMenu.show(hamburgerButton, 0, hamburgerButton.height)
         }
+
+        DicePreferenceService.addPreferenceChangeListener(PreferenceChangeListener {
+            if (it.key == DicePreferenceService.PREF_DELAY_FOR_SEARCH) {
+                timedTextChangeAdapter.delay = DicePreferenceService.prefSearchForDelay
+            }
+        })
 
         contentPane = rootPane
     }

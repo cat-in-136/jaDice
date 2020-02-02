@@ -16,17 +16,24 @@ class JaDicePreferencePane : JPanel(BorderLayout()) {
     }
 
     fun showDialog(parent: Component) {
-        JOptionPane.showConfirmDialog(parent,
+        val ret = JOptionPane.showConfirmDialog(parent,
                 this,
                 null,
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE)
+        if (ret == JOptionPane.OK_OPTION) {
+            applyToPreference()
+        }
     }
 
     private fun createUIComponents() {
         this.add(tabbedPane, BorderLayout.CENTER)
         tabbedPane.addTab("Search", searchPref.getRootComponent())
         tabbedPane.addTab("Dictionaries", dictionaryPref.getRootComponent())
+    }
+
+    private fun applyToPreference() {
+        searchPref.applyToPreference()
     }
 
     private class SearchPref {
@@ -41,11 +48,9 @@ class JaDicePreferencePane : JPanel(BorderLayout()) {
         private fun createUIComponents() {
             val delayForSearchLabel = JLabel()
             delayForSearchLabel.text = "Delay time for incremental search"
-            delayForSearchLabel.isEnabled = false
-            delayForSearchTextField.value = 100
+            delayForSearchTextField.value = DicePreferenceService.prefSearchForDelay
             delayForSearchTextField.horizontalAlignment = JTextField.TRAILING
             delayForSearchTextField.columns = 4
-            delayForSearchTextField.isEnabled = false
             delayForSearchLabel.labelFor = delayForSearchTextField
 
             searchDelayCheckBox.text = "Normalize search word"
@@ -81,6 +86,10 @@ class JaDicePreferencePane : JPanel(BorderLayout()) {
         }
 
         fun getRootComponent(): JComponent = rootPane
+
+        fun applyToPreference() {
+            DicePreferenceService.prefSearchForDelay = delayForSearchTextField.value as Int
+        }
     }
 
     private class DicPref {

@@ -19,6 +19,13 @@ class TimedTextChangeAdapter(delay: Int, listener: ChangeListener) : DocumentLis
         isRepeats = false
     }
 
+    var delay
+        get() = timer.delay
+        set(value) {
+            timer.initialDelay = value
+            timer.delay = value
+        }
+
     override fun changedUpdate(e: DocumentEvent) {
         timer.stop()
         source = e.document
