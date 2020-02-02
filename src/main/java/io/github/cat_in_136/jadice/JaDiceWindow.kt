@@ -29,10 +29,14 @@ class JaDiceWindow : JFrame() {
         popupMenu.add("Setting")
 
         searchTextBox.document.addDocumentListener(TimedTextChangeAdapter(100, ChangeListener {
-            val value = searchTextBox.text
-            val result = worker.search(value).get()
-
-            setTextToResultView(result)
+            worker.search(searchTextBox.text).whenComplete { result, throwable ->
+                if (throwable != null) {
+                    throw throwable
+                }
+                if (result != null) {
+                    setTextToResultView(result)
+                }
+            }
         }))
         toolBar.add(JLayer(searchTextBox, PlaceholderLayerUI("Search")))
         toolBar.addSeparator()

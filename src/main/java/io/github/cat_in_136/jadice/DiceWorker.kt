@@ -7,16 +7,15 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
-import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
-import java.util.concurrent.Future
+import java.util.function.Supplier
 
 
 class DiceWorker {
     private val dice = DiceFactory.getInstance()
 
-    private var latestSubmittedFuture: Future<List<DiceResultData>> = CompletableFuture.completedFuture(Collections.emptyList())
+    private var latestSubmittedFuture: CompletableFuture<List<DiceResultData>> = CompletableFuture.completedFuture(Collections.emptyList())
     private val pool = Executors.newSingleThreadExecutor()
 
     init {
@@ -44,13 +43,13 @@ class DiceWorker {
         }
     }
 
-    fun search(keyword: String): Future<List<DiceResultData>> {
-        synchronized (this) {
+    fun search(keyword: String): CompletableFuture<List<DiceResultData>> {
+        synchronized(this) {
             cancelSearchTasks()
 
-            latestSubmittedFuture = pool.submit(Callable {
+            latestSubmittedFuture = CompletableFuture.supplyAsync(Supplier {
                 searchSync(keyword)
-            })
+            }, pool)
             return latestSubmittedFuture
         }
     }
