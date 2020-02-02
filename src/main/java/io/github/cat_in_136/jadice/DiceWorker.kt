@@ -6,15 +6,17 @@ import jp.sblo.pandora.dice.IdicResult
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.*
 import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
 
 class DiceWorker {
     private val dice = DiceFactory.getInstance()
-    private var latestSubmittedFuture: Future<List<DiceResultData>>? = null
 
+    private var latestSubmittedFuture: Future<List<DiceResultData>> = CompletableFuture.completedFuture(Collections.emptyList())
     private val pool = Executors.newSingleThreadExecutor()
 
     init {
@@ -33,18 +35,23 @@ class DiceWorker {
         }
     }
 
+    private fun cancelSearchTasks() {
+        synchronized(this) {
+            if (!latestSubmittedFuture.isCancelled &&
+                    !latestSubmittedFuture.isDone) {
+                latestSubmittedFuture.cancel(true)
+            }
+        }
+    }
+
     fun search(keyword: String): Future<List<DiceResultData>> {
         synchronized (this) {
-            latestSubmittedFuture?.also {
-                if (!it.isDone && !it.isCancelled) {
-                    it.cancel(true)
-                }
-            }
+            cancelSearchTasks()
 
             latestSubmittedFuture = pool.submit(Callable {
                 searchSync(keyword)
             })
-            return latestSubmittedFuture!!
+            return latestSubmittedFuture
         }
     }
 
