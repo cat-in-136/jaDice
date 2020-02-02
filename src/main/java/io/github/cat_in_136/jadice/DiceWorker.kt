@@ -23,10 +23,10 @@ class DiceWorker {
             val idxFile = File.createTempFile("JaDice", ".idx")
             idxFile.deleteOnExit()
 
-            if(!dicInfo.readIndexBlock(object : IIndexCacheFile{
-                override fun getInput(): FileInputStream = FileInputStream(idxFile)
-                override fun getOutput(): FileOutputStream = FileOutputStream(idxFile)
-            })) {
+            if (!dicInfo.readIndexBlock(object : IIndexCacheFile {
+                        override fun getInput(): FileInputStream = FileInputStream(idxFile)
+                        override fun getOutput(): FileOutputStream = FileOutputStream(idxFile)
+                    })) {
                 dice.close(dicInfo)
             } else {
                 // TODO SettingsActivity.apllySettings(this, dicInfo)
@@ -147,7 +147,7 @@ class DiceWorker {
             }
 
     @Throws(InterruptedException::class)
-    private fun throwInterruptedExceptionIfInterrupted(){
+    private fun throwInterruptedExceptionIfInterrupted() {
         if (Thread.currentThread().isInterrupted) {
             throw InterruptedException()
         }

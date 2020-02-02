@@ -58,7 +58,6 @@ class JaDiceWindow : JFrame() {
     }
 
     private fun setTextToResultView(result: List<DiceResultData>) {
-
         val items = result.map {
             when (it.mode) {
                 DiceResultData.DiceResultDataMode.WORD -> """
