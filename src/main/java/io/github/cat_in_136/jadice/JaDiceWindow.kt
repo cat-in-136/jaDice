@@ -42,7 +42,9 @@ class JaDiceWindow : JFrame() {
         scrollPane1.setViewportView(resultView)
 
         val popupMenu = JPopupMenu()
-        popupMenu.add("Setting")
+        popupMenu.add("Setting").addActionListener {
+            JaDicePreferencePane().showDialog(this)
+        }
 
         searchTextBox.document.addDocumentListener(TimedTextChangeAdapter(100, ChangeListener {
             worker.search(searchTextBox.text).whenComplete { result, throwable ->
