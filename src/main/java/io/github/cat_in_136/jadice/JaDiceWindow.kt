@@ -1,29 +1,45 @@
 package io.github.cat_in_136.jadice
 
-import io.github.cat_in_136.misc.PlaceholderLayerUI
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import io.github.cat_in_136.misc.escapeHtml
 import java.awt.BorderLayout
 import javax.swing.*
 import javax.swing.event.ChangeListener
 
+
 class JaDiceWindow : JFrame() {
     private val worker = DiceWorker()
 
     private val searchTextBox = JTextField()
-    private val resultView = JEditorPane().apply {
-        this.contentType = "text/html"
-        this.isEditable = false
-    }
+    private val hamburgerButton = JButton()
+    private val resultView = JEditorPane()
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
 
+        createUIComponents()
+        pack()
+    }
+
+    private fun createUIComponents() {
         val rootPane = JPanel(BorderLayout())
 
-        val toolBar = JToolBar()
-        toolBar.isFloatable = false
-        rootPane.add(toolBar, BorderLayout.NORTH)
+        rootPane.layout = BorderLayout(0, 0)
+        val topBar = JPanel()
+        topBar.layout = BorderLayout(0, 0)
+        rootPane.add(topBar, BorderLayout.NORTH)
+        topBar.add(searchTextBox, BorderLayout.CENTER)
+        hamburgerButton.text = "≡"
+        topBar.add(hamburgerButton, BorderLayout.EAST)
+        val scrollPane1 = JScrollPane()
+        rootPane.add(scrollPane1, BorderLayout.CENTER)
+        resultView.contentType = "text/html"
+        resultView.isEditable = false
+        resultView.text = """
+                <h1>jaDice</h1>
+                <p>jaDice is the viewer for dictionaries of PDIC format.</p>
+            """.trimIndent()
+        scrollPane1.setViewportView(resultView)
 
         val popupMenu = JPopupMenu()
         popupMenu.add("Setting")
@@ -38,23 +54,11 @@ class JaDiceWindow : JFrame() {
                 }
             }
         }))
-        toolBar.add(JLayer(searchTextBox, PlaceholderLayerUI("Search")))
-        toolBar.addSeparator()
-        val menuButton = JButton("\u22EE")
-        menuButton.addActionListener {
-            popupMenu.show(menuButton, 0, menuButton.height)
+        hamburgerButton.addActionListener {
+            popupMenu.show(hamburgerButton, 0, hamburgerButton.height)
         }
-        toolBar.add(menuButton)
-
-        resultView.text = """
-            <h1>jaDice</h1>
-            <p>jaDice is the viewer for dictionaries of PDIC format.</p>
-        """.trimIndent()
-        val resultViewScrollPane = JScrollPane(resultView)
-        rootPane.add(resultViewScrollPane, BorderLayout.CENTER)
 
         contentPane = rootPane
-        pack()
     }
 
     private fun setTextToResultView(result: List<DiceResultData>) {
