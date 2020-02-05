@@ -1,7 +1,6 @@
 package io.github.cat_in_136.jadice
 
-import java.awt.BorderLayout
-import java.awt.Component
+import java.awt.*
 import javax.swing.*
 
 
@@ -37,8 +36,8 @@ class JaDicePreferencePane : JPanel(BorderLayout()) {
     }
 
     private class SearchPref {
-        private var delayForSearchTextField = JFormattedTextField()
-        private var searchDelayCheckBox = JCheckBox()
+        private val delayForSearchTextField = JFormattedTextField()
+        private val searchDelayCheckBox = JCheckBox()
         private val rootPane = JPanel()
 
         init {
@@ -46,43 +45,24 @@ class JaDicePreferencePane : JPanel(BorderLayout()) {
         }
 
         private fun createUIComponents() {
+            rootPane.layout = GridBagLayout()
+            val delayForSearchPanel = JPanel()
+            delayForSearchPanel.layout = FlowLayout(FlowLayout.CENTER, 5, 5)
+            val gbc = GridBagConstraints()
+            gbc.anchor = GridBagConstraints.LINE_START
+            gbc.gridwidth = GridBagConstraints.REMAINDER
+            rootPane.add(delayForSearchPanel, gbc)
             val delayForSearchLabel = JLabel()
             delayForSearchLabel.text = "Delay time for incremental search"
+            delayForSearchPanel.add(delayForSearchLabel)
             delayForSearchTextField.value = DicePreferenceService.prefSearchForDelay
             delayForSearchTextField.horizontalAlignment = JTextField.TRAILING
             delayForSearchTextField.columns = 4
             delayForSearchLabel.labelFor = delayForSearchTextField
-
+            delayForSearchPanel.add(delayForSearchTextField)
             searchDelayCheckBox.text = "Normalize search word"
             searchDelayCheckBox.isEnabled = false
-
-            val layout = GroupLayout(rootPane)
-            layout.autoCreateGaps = true
-            layout.autoCreateContainerGaps = true
-            rootPane.layout = layout
-
-            layout.setHorizontalGroup(layout.createSequentialGroup()
-                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                            .addComponent(delayForSearchLabel))
-                                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                            .addComponent(delayForSearchTextField)))
-                            .addComponent(searchDelayCheckBox)
-                    )
-            )
-
-            layout.setVerticalGroup(layout.createSequentialGroup()
-                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                            .addComponent(delayForSearchLabel)
-                                            .addComponent(delayForSearchTextField))
-                            )
-                    )
-                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                            .addComponent(searchDelayCheckBox))
-            )
+            rootPane.add(searchDelayCheckBox, gbc)
         }
 
         fun getRootComponent(): JComponent = rootPane
@@ -112,16 +92,20 @@ class JaDicePreferencePane : JPanel(BorderLayout()) {
             dicListView.isEnabled = false
             scrollPane1.setViewportView(dicListView)
             rootPane.add(scrollPane1, BorderLayout.CENTER)
-            val panel1 = JPanel()
-            panel1.layout = BoxLayout(panel1, BoxLayout.PAGE_AXIS)
-            rootPane.add(panel1, BorderLayout.EAST)
+            val btnPanel = JPanel()
+            btnPanel.layout = GridBagLayout()
+            rootPane.add(btnPanel, BorderLayout.EAST)
+            val gbc = GridBagConstraints()
+            gbc.weightx = 1.0
+            gbc.fill = GridBagConstraints.HORIZONTAL
+            gbc.gridwidth = GridBagConstraints.REMAINDER
+            gbc.insets = Insets(2, 0, 2, 0)
             addButton.text = "Add"
             addButton.isEnabled = false
-            panel1.add(addButton)
+            btnPanel.add(addButton, gbc)
             delButton.text = "Delete"
             delButton.isEnabled = false
-            panel1.add(delButton)
-            panel1.add(Box.createVerticalGlue())
+            btnPanel.add(delButton, gbc)
         }
 
         fun getRootComponent(): JComponent = rootPane
