@@ -6,6 +6,7 @@ import jp.sblo.pandora.dice.IdicResult
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -15,43 +16,71 @@ import java.util.function.Supplier
 class DiceWorker {
     private val dice = DiceFactory.getInstance()
 
-    private var latestSubmittedFuture: CompletableFuture<List<DiceResultData>> = CompletableFuture.completedFuture(Collections.emptyList())
+    private var latestSearchTask: CompletableFuture<List<DiceResultData>> = CompletableFuture.completedFuture(Collections.emptyList())
     private val pool = Executors.newSingleThreadExecutor()
 
     init {
-        dice.open("PDWD1913U.dic")?.let { dicInfo ->
-            val idxFile = File.createTempFile("JaDice", ".idx")
-            idxFile.deleteOnExit()
+        addDictionary("PDWD1913U.dic")
+                .join()
+    }
 
-            if (!dicInfo.readIndexBlock(object : IIndexCacheFile {
-                        override fun getInput(): FileInputStream = FileInputStream(idxFile)
-                        override fun getOutput(): FileOutputStream = FileOutputStream(idxFile)
-                    })) {
-                dice.close(dicInfo)
-            } else {
-                // TODO SettingsActivity.apllySettings(this, dicInfo)
+    private fun cancelSearchTask() {
+        synchronized(this) {
+            if (!latestSearchTask.isCancelled &&
+                    !latestSearchTask.isDone) {
+                latestSearchTask.cancel(true)
             }
         }
     }
 
-    private fun cancelSearchTasks() {
-        synchronized(this) {
-            if (!latestSubmittedFuture.isCancelled &&
-                    !latestSubmittedFuture.isDone) {
-                latestSubmittedFuture.cancel(true)
+    private fun addDictionary(filename: String): CompletableFuture<Unit> {
+        cancelSearchTask()
+
+        return CompletableFuture.supplyAsync(Supplier {
+            synchronized(dice) {
+                val dicInfo = dice.open(filename)
+                if (dicInfo != null) {
+                    val idxFile = File.createTempFile("JaDice", ".idx")
+                    idxFile.deleteOnExit()
+
+                    if (!dicInfo.readIndexBlock(object : IIndexCacheFile {
+                                override fun getInput(): FileInputStream = FileInputStream(idxFile)
+                                override fun getOutput(): FileOutputStream = FileOutputStream(idxFile)
+                            })) {
+                        dice.close(dicInfo)
+                        throw IOException()
+                    }
+                } else {
+                    throw IOException()
+                }
             }
-        }
+        }, pool)
+    }
+
+    private fun removeDictionary(filename: String): CompletableFuture<Unit> {
+        cancelSearchTask()
+
+        return CompletableFuture.supplyAsync(Supplier {
+            synchronized(dice) {
+                val dicInfo = dice.getDicInfo(filename)
+                if (dicInfo != null) {
+                    dice.close(dicInfo)
+
+                    // TODO remove index file
+                } else {
+                    throw IOException()
+                }
+            }
+        }, pool)
     }
 
     fun search(keyword: String): CompletableFuture<List<DiceResultData>> {
-        synchronized(this) {
-            cancelSearchTasks()
+        cancelSearchTask()
 
-            latestSubmittedFuture = CompletableFuture.supplyAsync(Supplier {
-                searchSync(keyword)
-            }, pool)
-            return latestSubmittedFuture
-        }
+        latestSearchTask = CompletableFuture.supplyAsync(Supplier {
+            searchSync(keyword)
+        }, pool)
+        return latestSearchTask
     }
 
     private fun searchSync(keyword: String): List<DiceResultData> {
