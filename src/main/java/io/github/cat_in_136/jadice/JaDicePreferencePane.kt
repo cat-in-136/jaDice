@@ -4,7 +4,7 @@ import java.awt.*
 import javax.swing.*
 
 
-class JaDicePreferencePane : JPanel(BorderLayout()) {
+class JaDicePreferencePane(private val diceWorker: DiceWorker) : JPanel(BorderLayout()) {
     private val tabbedPane = JTabbedPane()
 
     private val searchPref = SearchPref()

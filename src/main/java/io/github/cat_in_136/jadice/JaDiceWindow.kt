@@ -8,8 +8,7 @@ import javax.swing.*
 import javax.swing.event.ChangeListener
 
 
-class JaDiceWindow : JFrame() {
-    private val worker = DiceWorker()
+class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
 
     private val searchTextBox = JTextField()
     private val hamburgerButton = JButton()
@@ -44,13 +43,13 @@ class JaDiceWindow : JFrame() {
 
         val popupMenu = JPopupMenu()
         popupMenu.add("Setting").addActionListener {
-            JaDicePreferencePane().showDialog(this)
+            JaDicePreferencePane(diceWorker).showDialog(this)
         }
 
         val timedTextChangeAdapter = TimedTextChangeAdapter(
                 DicePreferenceService.prefSearchForDelay,
                 ChangeListener {
-                    worker.search(searchTextBox.text).whenComplete { result, throwable ->
+                    diceWorker.search(searchTextBox.text).whenComplete { result, throwable ->
                         if (throwable != null) {
                             throw throwable
                         }

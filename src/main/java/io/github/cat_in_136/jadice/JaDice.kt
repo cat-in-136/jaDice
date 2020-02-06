@@ -6,7 +6,9 @@ import kotlin.math.max
 object JaDice {
     @JvmStatic
     fun main(args: Array<String>) {
-        val window = JaDiceWindow()
+        val worker = DiceWorker()
+
+        val window = JaDiceWindow(worker)
         window.size = Dimension(max(window.size.width, 256), max(window.size.height, 256))
         window.isVisible = true
     }
