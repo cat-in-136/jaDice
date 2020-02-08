@@ -1,14 +1,17 @@
 package io.github.cat_in_136.jadice
 
+import jp.sblo.pandora.dice.IdicInfo
 import java.awt.*
+import java.util.concurrent.CompletableFuture
 import javax.swing.*
+import javax.swing.filechooser.FileNameExtensionFilter
 
 
-class JaDicePreferencePane(private val diceWorker: DiceWorker) : JPanel(BorderLayout()) {
+class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
     private val tabbedPane = JTabbedPane()
 
     private val searchPref = SearchPref()
-    private val dictionaryPref = DicPref()
+    private val dictionaryPref = DicPref(diceWorker)
 
     init {
         createUIComponents()
@@ -33,6 +36,9 @@ class JaDicePreferencePane(private val diceWorker: DiceWorker) : JPanel(BorderLa
 
     private fun applyToPreference() {
         searchPref.applyToPreference()
+        dictionaryPref.applyToPreference()
+
+        DicePreferenceService.flush()
     }
 
     private class SearchPref {
@@ -72,9 +78,10 @@ class JaDicePreferencePane(private val diceWorker: DiceWorker) : JPanel(BorderLa
         }
     }
 
-    private class DicPref {
+    private class DicPref(val diceWorker: DiceWorker) {
         private val rootPane = JPanel()
 
+        private val dicListModel = DefaultListModel<String>()
         private val dicListView = JList<String>()
         private val addButton = JButton()
         private val delButton = JButton()
@@ -88,8 +95,7 @@ class JaDicePreferencePane(private val diceWorker: DiceWorker) : JPanel(BorderLa
 
             val scrollPane1 = JScrollPane()
             rootPane.add(scrollPane1, BorderLayout.CENTER)
-            dicListView.setListData(arrayOf("None"))
-            dicListView.isEnabled = false
+            dicListView.model = dicListModel
             scrollPane1.setViewportView(dicListView)
             rootPane.add(scrollPane1, BorderLayout.CENTER)
             val btnPanel = JPanel()
@@ -101,13 +107,58 @@ class JaDicePreferencePane(private val diceWorker: DiceWorker) : JPanel(BorderLa
             gbc.gridwidth = GridBagConstraints.REMAINDER
             gbc.insets = Insets(2, 0, 2, 0)
             addButton.text = "Add"
-            addButton.isEnabled = false
             btnPanel.add(addButton, gbc)
             delButton.text = "Delete"
             delButton.isEnabled = false
             btnPanel.add(delButton, gbc)
+
+            for (dic in DicePreferenceService.prefDics) {
+                dicListModel.addElement(dic)
+            }
+            addButton.addActionListener {
+                val fileChooser = JFileChooser()
+                fileChooser.fileFilter = FileNameExtensionFilter("PDIC File (*.dic)", "dic")
+                fileChooser.isAcceptAllFileFilterUsed = true
+
+                val selected = fileChooser.showOpenDialog(rootPane)
+                if (selected == JFileChooser.APPROVE_OPTION) {
+                    val path = fileChooser.selectedFile.absolutePath
+                    if (dicListModel.contains(path)) {
+                        JOptionPane.showMessageDialog(rootPane, "$path is already added")
+                    } else {
+                        tryToOpenPDICFile(path).whenCompleteAsync { _, e ->
+                            SwingUtilities.invokeAndWait {
+                                if (e != null) {
+                                    JOptionPane.showMessageDialog(rootPane, "failed to open $path")
+                                } else {
+                                    dicListModel.addElement(path)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         fun getRootComponent(): JComponent = rootPane
+
+        fun tryToOpenPDICFile(path: String): CompletableFuture<IdicInfo> {
+            return diceWorker.addDictionary(path).whenComplete { _, e ->
+                e?.run { throw e }
+                diceWorker.removeDictionary(path)
+            }
+        }
+
+        fun applyToPreference() {
+            val prefDics = dicListModel.elements().toList()
+            DicePreferenceService.prefDics = prefDics
+
+            diceWorker.removeAllDictionaries().whenComplete { _, e ->
+                e?.run { throw e }
+                CompletableFuture.allOf(*prefDics.map {
+                    diceWorker.addDictionary(it)
+                }.toTypedArray())
+            }
+        }
     }
 }

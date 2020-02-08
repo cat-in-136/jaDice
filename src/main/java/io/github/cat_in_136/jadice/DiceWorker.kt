@@ -2,6 +2,7 @@ package io.github.cat_in_136.jadice
 
 import jp.sblo.pandora.dice.DiceFactory
 import jp.sblo.pandora.dice.IIndexCacheFile
+import jp.sblo.pandora.dice.IdicInfo
 import jp.sblo.pandora.dice.IdicResult
 import java.io.File
 import java.io.FileInputStream
@@ -13,15 +14,16 @@ import java.util.concurrent.Executors
 import java.util.function.Supplier
 
 
-class DiceWorker {
+class DiceWorker(dics: Iterable<String>) {
     private val dice = DiceFactory.getInstance()
 
     private var latestSearchTask: CompletableFuture<List<DiceResultData>> = CompletableFuture.completedFuture(Collections.emptyList())
     private val pool = Executors.newSingleThreadExecutor()
 
     init {
-        addDictionary("PDWD1913U.dic")
-                .join()
+        CompletableFuture.allOf(*dics.map {
+            addDictionary(it)
+        }.toTypedArray()).join()
     }
 
     private fun cancelSearchTask() {
@@ -33,7 +35,24 @@ class DiceWorker {
         }
     }
 
-    private fun addDictionary(filename: String): CompletableFuture<Unit> {
+    fun removeAllDictionaries(): CompletableFuture<List<IdicInfo>> {
+        cancelSearchTask()
+
+        return CompletableFuture.supplyAsync(Supplier {
+            synchronized(dice) {
+                val lists = arrayListOf<IdicInfo>()
+                for (i in 0 until dice.dicNum) {
+                    lists.add(dice.getDicInfo(i))
+                }
+                for (dic in lists) {
+                    dice.close(dic)
+                }
+                return@Supplier lists.toList()
+            }
+        }, pool)
+    }
+
+    fun addDictionary(filename: String): CompletableFuture<IdicInfo> {
         cancelSearchTask()
 
         return CompletableFuture.supplyAsync(Supplier {
@@ -49,6 +68,8 @@ class DiceWorker {
                             })) {
                         dice.close(dicInfo)
                         throw IOException()
+                    } else {
+                        return@Supplier dicInfo
                     }
                 } else {
                     throw IOException()
@@ -57,7 +78,7 @@ class DiceWorker {
         }, pool)
     }
 
-    private fun removeDictionary(filename: String): CompletableFuture<Unit> {
+    fun removeDictionary(filename: String): CompletableFuture<IdicInfo> {
         cancelSearchTask()
 
         return CompletableFuture.supplyAsync(Supplier {
@@ -67,6 +88,8 @@ class DiceWorker {
                     dice.close(dicInfo)
 
                     // TODO remove index file
+
+                    return@Supplier dicInfo
                 } else {
                     throw IOException()
                 }
