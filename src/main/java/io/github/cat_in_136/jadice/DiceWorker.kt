@@ -35,20 +35,32 @@ class DiceWorker(dics: Iterable<String>) {
         }
     }
 
+    fun getDictionaries(): CompletableFuture<List<IdicInfo>> {
+        return CompletableFuture.supplyAsync(Supplier {
+            val lists = arrayListOf<IdicInfo>()
+            synchronized(dice) {
+                for (i in 0 until dice.dicNum) {
+                    lists.add(dice.getDicInfo(i))
+                }
+            }
+            return@Supplier lists.toList()
+        }, pool)
+    }
+
     fun removeAllDictionaries(): CompletableFuture<List<IdicInfo>> {
         cancelSearchTask()
 
         return CompletableFuture.supplyAsync(Supplier {
+            val lists = arrayListOf<IdicInfo>()
             synchronized(dice) {
-                val lists = arrayListOf<IdicInfo>()
                 for (i in 0 until dice.dicNum) {
                     lists.add(dice.getDicInfo(i))
                 }
                 for (dic in lists) {
                     dice.close(dic)
                 }
-                return@Supplier lists.toList()
             }
+            return@Supplier lists.toList()
         }, pool)
     }
 

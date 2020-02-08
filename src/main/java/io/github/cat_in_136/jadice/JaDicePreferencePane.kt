@@ -109,7 +109,6 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             addButton.text = "Add"
             btnPanel.add(addButton, gbc)
             delButton.text = "Delete"
-            delButton.isEnabled = false
             btnPanel.add(delButton, gbc)
 
             for (dic in DicePreferenceService.prefDics) {
@@ -138,14 +137,22 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
                     }
                 }
             }
+            delButton.addActionListener {
+                val selectedIndex = dicListView.selectedIndex
+                if (selectedIndex >= 0) {
+                    dicListModel.removeElementAt(selectedIndex)
+                }
+            }
         }
 
         fun getRootComponent(): JComponent = rootPane
 
         fun tryToOpenPDICFile(path: String): CompletableFuture<IdicInfo> {
-            return diceWorker.addDictionary(path).whenComplete { _, e ->
-                e?.run { throw e }
-                diceWorker.removeDictionary(path)
+            return diceWorker.getDictionaries().thenApplyAsync { dics ->
+                dics.find { it.GetFilename() == path } ?: diceWorker.addDictionary(path).thenApply { dicInfo ->
+                    diceWorker.removeDictionary(path)
+                    dicInfo
+                }.get()
             }
         }
 
@@ -153,11 +160,11 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             val prefDics = dicListModel.elements().toList()
             DicePreferenceService.prefDics = prefDics
 
-            diceWorker.removeAllDictionaries().whenComplete { _, e ->
+            diceWorker.removeAllDictionaries().whenCompleteAsync { _, e ->
                 e?.run { throw e }
-                CompletableFuture.allOf(*prefDics.map {
-                    diceWorker.addDictionary(it)
-                }.toTypedArray())
+                for (dic in prefDics) {
+                    diceWorker.addDictionary(dic).join()
+                }
             }
         }
     }
