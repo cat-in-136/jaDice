@@ -109,10 +109,14 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             addButton.text = "Add"
             btnPanel.add(addButton, gbc)
             delButton.text = "Delete"
+            delButton.isEnabled = false
             btnPanel.add(delButton, gbc)
 
             for (dic in DicePreferenceService.prefDics) {
                 dicListModel.addElement(dic)
+            }
+            dicListView.addListSelectionListener {
+                delButton.isEnabled = !dicListView.isSelectionEmpty
             }
             addButton.addActionListener {
                 val fileChooser = JFileChooser()
