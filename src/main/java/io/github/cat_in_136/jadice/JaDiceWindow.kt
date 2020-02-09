@@ -1,7 +1,7 @@
 package io.github.cat_in_136.jadice
 
+import io.github.cat_in_136.misc.SimpleHTMLStreamWriter
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
-import io.github.cat_in_136.misc.escapeHtml
 import java.awt.BorderLayout
 import java.util.prefs.PreferenceChangeListener
 import javax.swing.*
@@ -73,40 +73,60 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     }
 
     private fun setTextToResultView(result: List<DiceResultData>) {
-        val items = result.map {
-            when (it.mode) {
-                DiceResultData.DiceResultDataMode.WORD -> """
-                    <div>
-                        <h3>${escapeHtml(it.index ?: "")}</h3>
-                        <div>
-                            ${escapeHtml(it.trans ?: "", true)}
-                        </div>
-                    </div>
-                """.trimIndent()
-                DiceResultData.DiceResultDataMode.MORE -> """
-                    <div>
-                        <a href="about:blank">More...</a><!-- TODO -->
-                    </div>
-                """.trimIndent()
-                DiceResultData.DiceResultDataMode.FOOTER -> """
-                    <div>from ${escapeHtml(it.index ?: "")}</div>
-                    <hr>
-                """.trimIndent()
-                else -> """
-                    <div>${escapeHtml(it.index ?: "")}</div>
-                """.trimIndent()
-            }
-        }.joinToString("")
+        val strOut = StringBuilder()
+        val writer = SimpleHTMLStreamWriter(strOut, true)
 
+        writer.writeStartElement("html")
+        writer.writeStartElement("head")
+        writer.writeEndElement()
+        writer.writeStartElement("body")
+
+        for (data in result) {
+            when (data.mode) {
+                DiceResultData.DiceResultDataMode.WORD -> {
+                    writer.writeStartElement("div")
+                    writer.writeStartElement("h3")
+                    writer.writeCharacters(data.index ?: "")
+                    writer.writeEndElement()
+                    if (data.phone != null) {
+                        writer.writeStartElement("div", mapOf("style" to "margin-bottom: 3ex"))
+                        writer.writeCharacters(data.phone)
+                        writer.writeEndElement()
+                    }
+                    if (data.trans != null) {
+                        writer.writeStartElement("div")
+                        writer.writeCharacters(data.trans, true)
+                        writer.writeEndElement()
+                    }
+                    writer.writeEndElement()
+                }
+                DiceResultData.DiceResultDataMode.MORE -> {
+                    writer.writeStartElement("div")
+                    writer.writeStartElement("a", mapOf("href" to "about:blank")) // TODO more
+                    writer.writeCharacters("More...")
+                    writer.writeEndElement()
+                    writer.writeEndElement()
+                }
+                DiceResultData.DiceResultDataMode.FOOTER -> {
+                    writer.writeStartElement("div")
+                    writer.writeCharacters("from ${data.index.toString()}")
+                    writer.writeEndElement()
+                    writer.writeEmptyElement("hr")
+                }
+                else -> {
+                    writer.writeStartElement("div")
+                    writer.writeCharacters(data.index ?: "")
+                    writer.writeEndElement()
+                }
+            }
+        }
+
+        writer.writeEndElement()
+        writer.writeEndElement()
+
+        val html = strOut.toString()
         SwingUtilities.invokeLater {
-            resultView.text = """
-                <html>
-                    <head></head>
-                    <body>
-                        ${items}
-                    </body>
-                </html>
-            """.trimIndent()
+            resultView.text = html
             resultView.select(0, 0)
         }
     }
