@@ -68,24 +68,21 @@ class DiceWorker(dics: Iterable<String>) {
         cancelSearchTask()
 
         return CompletableFuture.supplyAsync(Supplier {
-            val dicInfo = dice.open(filename)
-            if (dicInfo != null) {
-                val idxFile = File.createTempFile("JaDice", ".idx")
-                idxFile.deleteOnExit()
+            dice.open(filename) ?: throw IOException()
+        }, pool).thenApply { dicInfo ->
+            val idxFile = File.createTempFile("JaDice", ".idx")
+            idxFile.deleteOnExit()
 
-                if (!dicInfo.readIndexBlock(object : IIndexCacheFile {
-                            override fun getInput(): FileInputStream = FileInputStream(idxFile)
-                            override fun getOutput(): FileOutputStream = FileOutputStream(idxFile)
-                        })) {
-                    dice.close(dicInfo)
-                    throw IOException()
-                } else {
-                    return@Supplier dicInfo
-                }
-            } else {
+            if (!dicInfo.readIndexBlock(object : IIndexCacheFile {
+                        override fun getInput(): FileInputStream = FileInputStream(idxFile)
+                        override fun getOutput(): FileOutputStream = FileOutputStream(idxFile)
+                    })) {
+                dice.close(dicInfo)
                 throw IOException()
+            } else {
+                dicInfo
             }
-        }, pool)
+        }
     }
 
     fun removeDictionary(filename: String): CompletableFuture<IdicInfo> {
