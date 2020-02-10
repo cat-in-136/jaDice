@@ -5,7 +5,7 @@ import java.util.*
 class SimpleHTMLStreamWriter(private val writer: Appendable, private val xmlStyle: Boolean = false) {
     private val tagStack = LinkedList<CharSequence>()
 
-    fun writeStartElement(name: CharSequence, attrs: Map<String, String> = mapOf()) {
+    fun startElement(name: CharSequence, attrs: Map<CharSequence, CharSequence> = mapOf()) {
         writer.append('<')
         writer.append(name)
         for ((attr, value) in attrs) {
@@ -20,7 +20,7 @@ class SimpleHTMLStreamWriter(private val writer: Appendable, private val xmlStyl
         tagStack.push(name)
     }
 
-    fun writeEndElement() {
+    fun endElement() {
         val name = tagStack.pop()
 
         writer.append("</")
@@ -28,7 +28,7 @@ class SimpleHTMLStreamWriter(private val writer: Appendable, private val xmlStyl
         writer.append('>')
     }
 
-    fun writeEmptyElement(name: CharSequence, attrs: Map<String, String> = mapOf()) {
+    fun emptyElement(name: CharSequence, attrs: Map<CharSequence, CharSequence> = mapOf()) {
         writer.append('<')
         writer.append(name)
         for ((attr, value) in attrs) {
@@ -45,11 +45,11 @@ class SimpleHTMLStreamWriter(private val writer: Appendable, private val xmlStyl
         })
     }
 
-    fun writeCharacters(text: CharSequence, breakLine: Boolean = false) {
+    fun characters(text: CharSequence, breakLine: Boolean = false) {
         writer.append(escapeHtml(text, breakLine))
     }
 
-//    fun writeComment(comment: CharSequence) {
+//    fun comment(comment: CharSequence) {
 //        writer.append("<!-- ")
 //        writer.append(comment)
 //        writer.append(" -->")

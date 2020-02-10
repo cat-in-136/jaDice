@@ -76,53 +76,53 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         val strOut = StringBuilder()
         val writer = SimpleHTMLStreamWriter(strOut, true)
 
-        writer.writeStartElement("html")
-        writer.writeStartElement("head")
-        writer.writeEndElement()
-        writer.writeStartElement("body")
+        writer.startElement("html")
+        writer.startElement("head")
+        writer.endElement()
+        writer.startElement("body")
 
         for (data in result) {
             when (data.mode) {
                 DiceResultData.DiceResultDataMode.WORD -> {
-                    writer.writeStartElement("div")
-                    writer.writeStartElement("h3")
-                    writer.writeCharacters(data.index ?: "")
-                    writer.writeEndElement()
+                    writer.startElement("div")
+                    writer.startElement("h3")
+                    writer.characters(data.index ?: "")
+                    writer.endElement()
                     if (data.phone != null) {
-                        writer.writeStartElement("div", mapOf("style" to "margin-bottom: 3ex"))
-                        writer.writeCharacters(data.phone)
-                        writer.writeEndElement()
+                        writer.startElement("div", mapOf("style" to "margin-bottom: 3ex"))
+                        writer.characters(data.phone)
+                        writer.endElement()
                     }
                     if (data.trans != null) {
-                        writer.writeStartElement("div")
-                        writer.writeCharacters(data.trans, true)
-                        writer.writeEndElement()
+                        writer.startElement("div")
+                        writer.characters(data.trans, true)
+                        writer.endElement()
                     }
-                    writer.writeEndElement()
+                    writer.endElement()
                 }
                 DiceResultData.DiceResultDataMode.MORE -> {
-                    writer.writeStartElement("div")
-                    writer.writeStartElement("a", mapOf("href" to "about:blank")) // TODO more
-                    writer.writeCharacters("More...")
-                    writer.writeEndElement()
-                    writer.writeEndElement()
+                    writer.startElement("div")
+                    writer.startElement("a", mapOf("href" to "about:blank")) // TODO more
+                    writer.characters("More...")
+                    writer.endElement()
+                    writer.endElement()
                 }
                 DiceResultData.DiceResultDataMode.FOOTER -> {
-                    writer.writeStartElement("div")
-                    writer.writeCharacters("from ${data.index.toString()}")
-                    writer.writeEndElement()
-                    writer.writeEmptyElement("hr")
+                    writer.startElement("div")
+                    writer.characters("from ${data.index.toString()}")
+                    writer.endElement()
+                    writer.emptyElement("hr")
                 }
                 else -> {
-                    writer.writeStartElement("div")
-                    writer.writeCharacters(data.index ?: "")
-                    writer.writeEndElement()
+                    writer.startElement("div")
+                    writer.characters(data.index ?: "")
+                    writer.endElement()
                 }
             }
         }
 
-        writer.writeEndElement()
-        writer.writeEndElement()
+        writer.endElement()
+        writer.endElement()
 
         val html = strOut.toString()
         SwingUtilities.invokeLater {
