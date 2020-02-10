@@ -1,6 +1,5 @@
 package io.github.cat_in_136.jadice
 
-import io.github.cat_in_136.misc.SimpleHTMLStreamWriter
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import java.awt.BorderLayout
 import java.net.URL
@@ -9,7 +8,6 @@ import java.util.prefs.PreferenceChangeListener
 import javax.swing.*
 import javax.swing.event.ChangeListener
 import javax.swing.event.HyperlinkEvent
-import javax.swing.text.Element
 import javax.swing.text.html.HTMLDocument
 
 
@@ -18,6 +16,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     private val searchTextBox = JTextField()
     private val hamburgerButton = JButton()
     private val resultView = JEditorPane()
+    private val renderer = DiceResultHTMLRenderer(this::generateCommandLink)
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -55,7 +54,10 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                 DicePreferenceService.prefSearchForDelay,
                 ChangeListener {
                     diceWorker.search(searchTextBox.text).thenApply {
-                        setTextToResultView(it)
+                        renderer.convertDiceResultDataToHtml(it)
+                    }.get().also {
+                        resultView.text = it
+                        resultView.select(0, 0)
                     }
                 })
         searchTextBox.document.addDocumentListener(timedTextChangeAdapter)
@@ -70,7 +72,11 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                 when (command) {
                     "more" -> argument?.toIntOrNull(10)?.also { dic ->
                         diceWorker.moreResults(dic).thenApply {
-                            replaceElementOnResultView(it, sourceElement)
+                            renderer.convertDiceResultDataToPartialHtml(it)
+                        }.get().also {
+                            val offset = sourceElement.startOffset
+                            (sourceElement.document as HTMLDocument).setOuterHTML(sourceElement, it)
+                            resultView.select(offset, offset)
                         }
                     }
                 }
@@ -84,89 +90,6 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         })
 
         contentPane = rootPane
-    }
-
-    private fun setTextToResultView(result: List<DiceResultData>) {
-        val strOut = StringBuilder()
-        val writer = SimpleHTMLStreamWriter(strOut, true)
-
-        writer.startElement("html")
-        writer.startElement("head")
-        writer.endElement()
-        writer.startElement("body")
-
-        convertDiceResultDataToHtmlString(result, writer)
-
-        writer.endElement()
-        writer.endElement()
-
-        val html = strOut.toString()
-        SwingUtilities.invokeLater {
-            resultView.text = html
-            resultView.select(0, 0)
-        }
-    }
-
-    private fun replaceElementOnResultView(result: List<DiceResultData>, element: Element) {
-        val strOut = StringBuilder()
-        val writer = SimpleHTMLStreamWriter(strOut, true)
-
-        convertDiceResultDataToHtmlString(result, writer)
-
-        val html = strOut.toString()
-        SwingUtilities.invokeLater {
-            val document = element.document as HTMLDocument
-            val offset = element.startOffset
-            document.setOuterHTML(element, html)
-            resultView.select(offset, offset)
-        }
-    }
-
-    private fun convertDiceResultDataToHtmlString(result: List<DiceResultData>, writer: SimpleHTMLStreamWriter) {
-        for (data in result) {
-            when (data.mode) {
-                DiceResultData.DiceResultDataMode.WORD -> {
-                    writer.startElement("div")
-                    writer.startElement("h3")
-                    writer.characters(data.index ?: "")
-                    writer.endElement()
-                    if (data.phone != null) {
-                        writer.startElement("div", mapOf("style" to "margin-bottom: 3ex"))
-                        writer.characters(data.phone)
-                        writer.endElement()
-                    }
-                    if (data.trans != null) {
-                        writer.startElement("div")
-                        writer.characters(data.trans, true)
-                        writer.endElement()
-                    }
-                    if (data.sample != null) {
-                        writer.startElement("div")
-                        writer.characters(data.sample, true)
-                        writer.endElement()
-                    }
-                    writer.endElement()
-                }
-                DiceResultData.DiceResultDataMode.MORE -> {
-                    writer.startElement("div")
-                    writer.startElement("a", mapOf("href" to generateCommandLink("more", data.dic.toString())))
-                    writer.characters("More...")
-                    writer.endElement()
-                    writer.endElement()
-                }
-                DiceResultData.DiceResultDataMode.FOOTER -> {
-                    writer.startElement("div")
-                    writer.characters("from ${data.index.toString()}")
-                    writer.endElement()
-                    writer.emptyElement("hr")
-                }
-                else -> {
-                    writer.startElement("div")
-                    writer.characters(data.index ?: "")
-                    writer.endElement()
-                }
-            }
-        }
     }
 
     private fun generateCommandLink(command: String, arguments: String): String {
