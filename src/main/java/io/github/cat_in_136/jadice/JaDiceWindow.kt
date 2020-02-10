@@ -123,14 +123,14 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         val strOut = StringBuilder()
         val writer = SimpleHTMLStreamWriter(strOut, true)
 
-        writer.startElement("div")
         convertDiceResultDataToHtmlString(result, writer)
-        writer.endElement()
 
         val html = strOut.toString()
         SwingUtilities.invokeLater {
             val document = element.document as HTMLDocument
+            val offset = element.startOffset
             document.setOuterHTML(element, html)
+            resultView.select(offset, offset)
         }
     }
 
