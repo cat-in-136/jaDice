@@ -3,8 +3,9 @@ package io.github.cat_in_136.jadice
 import io.github.cat_in_136.misc.SimpleHTMLStreamWriter
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import java.awt.BorderLayout
+import java.net.URL
+import java.net.URLEncoder
 import java.util.prefs.PreferenceChangeListener
-import java.util.regex.Pattern
 import javax.swing.*
 import javax.swing.event.ChangeListener
 import javax.swing.event.HyperlinkEvent
@@ -63,14 +64,11 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         }
         resultView.addHyperlinkListener { event ->
             if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-                val url = event.url
                 val sourceElement = event.sourceElement.parentElement
+                val (command, argument) = parseCommandLink(event.url)
 
-                if (url.path == "/more") {
-                    val pattern = Pattern.compile("dic=([0-9]+)")
-                    val matcher = pattern.matcher(url.query)
-                    if (matcher.find()) {
-                        val dic = matcher.group(1).toInt(10)
+                when (command) {
+                    "more" -> argument?.toIntOrNull(10)?.also { dic ->
                         diceWorker.moreResults(dic).thenApply {
                             replaceElementOnResultView(it, sourceElement)
                         }
@@ -151,7 +149,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                 }
                 DiceResultData.DiceResultDataMode.MORE -> {
                     writer.startElement("div")
-                    writer.startElement("a", mapOf("href" to "file:///more?dic=${data.dic}"))
+                    writer.startElement("a", mapOf("href" to generateCommandLink("more", data.dic.toString())))
                     writer.characters("More...")
                     writer.endElement()
                     writer.endElement()
@@ -168,6 +166,22 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                     writer.endElement()
                 }
             }
+        }
+    }
+
+    private fun generateCommandLink(command: String, arguments: String): String {
+        return "https://0.0.0.0/" +
+                URLEncoder.encode(command, "UTF-8") +
+                "/" +
+                URLEncoder.encode(arguments, "UTF-8")
+    }
+
+    private fun parseCommandLink(url: URL): Pair<String?, String?> {
+        return if ((url.protocol == "https") && (url.host == "0.0.0.0") && (url.path.startsWith("/"))) {
+            val array = url.file.substring(1).split("/")
+            Pair(array.getOrNull(0), array.getOrNull(1))
+        } else {
+            Pair(null, null)
         }
     }
 }
