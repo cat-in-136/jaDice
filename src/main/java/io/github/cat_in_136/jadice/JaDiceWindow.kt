@@ -79,6 +79,9 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                             resultView.select(offset, offset)
                         }
                     }
+                    "search" -> argument?.also { keyword ->
+                        searchTextBox.text = keyword
+                    }
                 }
             }
         }

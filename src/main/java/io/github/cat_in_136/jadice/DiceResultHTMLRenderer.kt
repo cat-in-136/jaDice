@@ -1,6 +1,7 @@
 package io.github.cat_in_136.jadice
 
 import io.github.cat_in_136.misc.SimpleHTMLStreamWriter
+import java.util.regex.Pattern
 
 
 class DiceResultHTMLRenderer(private val generateCommandLinkFunc: (String, String) -> String) {
@@ -31,7 +32,7 @@ class DiceResultHTMLRenderer(private val generateCommandLinkFunc: (String, Strin
         return strOut.toString()
     }
 
-    fun renderDiceResultData(result: List<DiceResultData>, writer: SimpleHTMLStreamWriter) {
+    private fun renderDiceResultData(result: List<DiceResultData>, writer: SimpleHTMLStreamWriter) {
         for (data in result) {
             when (data.mode) {
                 DiceResultData.DiceResultDataMode.WORD -> {
@@ -46,7 +47,8 @@ class DiceResultHTMLRenderer(private val generateCommandLinkFunc: (String, Strin
                     }
                     if (data.trans != null) {
                         writer.startElement("div")
-                        writer.characters(data.trans, true)
+                        renderTransTest(data.trans, writer)
+//                        writer.characters(data.trans, true)
                         writer.endElement()
                     }
                     if (data.sample != null) {
@@ -78,5 +80,42 @@ class DiceResultHTMLRenderer(private val generateCommandLinkFunc: (String, Strin
                 }
             }
         }
+    }
+
+    private fun renderTransTest(text: CharSequence, writer: SimpleHTMLStreamWriter) {
+        val pattern = Pattern.compile(
+                arrayOf(
+                        "<(→(?<eijiro>.+?))>", // EIJORO-style "<→word>"
+                        "(→　(?<waeijiro>.+))", // WAEIJIRO-style "→　word"
+                        "(＝(?<ryakujiro>.+))●" // RYAKUJIRO-style "＝word●"
+                ).joinToString("|"))
+        val matcher = pattern.matcher(text)
+
+        var pos = 0
+        while (matcher.find()) {
+            val groupName = arrayOf("eijiro", "waeijiro", "ryakujiro").find {
+                try {
+                    matcher.group(it)
+                    true
+                } catch (e: IllegalArgumentException) {
+                    false
+                }
+            }!!
+            val keyword = matcher.group(groupName)
+            val start = matcher.start()
+            val groupStart = matcher.start(groupName)
+            val groupEnd = matcher.end(groupName)
+            val end = matcher.end()
+
+            writer.characters(text.subSequence(pos, start), true) // $`
+            writer.characters(text.subSequence(start, groupStart), false)
+            writer.startElement("a", mapOf("href" to generateCommandLinkFunc("search", keyword)))
+            writer.characters(keyword, false)
+            writer.endElement()
+            writer.characters(text.subSequence(groupEnd, end), false)
+
+            pos = end
+        }
+        writer.characters(text.subSequence(pos, text.length), true)
     }
 }
