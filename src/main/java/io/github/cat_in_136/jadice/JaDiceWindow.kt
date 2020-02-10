@@ -98,6 +98,11 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                         writer.characters(data.trans, true)
                         writer.endElement()
                     }
+                    if (data.sample != null) {
+                        writer.startElement("div")
+                        writer.characters(data.sample, true)
+                        writer.endElement()
+                    }
                     writer.endElement()
                 }
                 DiceResultData.DiceResultDataMode.MORE -> {
