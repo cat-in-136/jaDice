@@ -38,11 +38,11 @@ class DiceWorker(dics: Iterable<String>) {
     fun getDictionaries(): CompletableFuture<List<IdicInfo>> {
         return CompletableFuture.supplyAsync(Supplier {
             val lists = arrayListOf<IdicInfo>()
-            synchronized(dice) {
-                for (i in 0 until dice.dicNum) {
-                    lists.add(dice.getDicInfo(i))
-                }
+
+            for (i in 0 until dice.dicNum) {
+                lists.add(dice.getDicInfo(i))
             }
+
             return@Supplier lists.toList()
         }, pool)
     }
@@ -52,14 +52,14 @@ class DiceWorker(dics: Iterable<String>) {
 
         return CompletableFuture.supplyAsync(Supplier {
             val lists = arrayListOf<IdicInfo>()
-            synchronized(dice) {
-                for (i in 0 until dice.dicNum) {
-                    lists.add(dice.getDicInfo(i))
-                }
-                for (dic in lists) {
-                    dice.close(dic)
-                }
+
+            for (i in 0 until dice.dicNum) {
+                lists.add(dice.getDicInfo(i))
             }
+            for (dic in lists) {
+                dice.close(dic)
+            }
+
             return@Supplier lists.toList()
         }, pool)
     }
@@ -68,24 +68,22 @@ class DiceWorker(dics: Iterable<String>) {
         cancelSearchTask()
 
         return CompletableFuture.supplyAsync(Supplier {
-            synchronized(dice) {
-                val dicInfo = dice.open(filename)
-                if (dicInfo != null) {
-                    val idxFile = File.createTempFile("JaDice", ".idx")
-                    idxFile.deleteOnExit()
+            val dicInfo = dice.open(filename)
+            if (dicInfo != null) {
+                val idxFile = File.createTempFile("JaDice", ".idx")
+                idxFile.deleteOnExit()
 
-                    if (!dicInfo.readIndexBlock(object : IIndexCacheFile {
-                                override fun getInput(): FileInputStream = FileInputStream(idxFile)
-                                override fun getOutput(): FileOutputStream = FileOutputStream(idxFile)
-                            })) {
-                        dice.close(dicInfo)
-                        throw IOException()
-                    } else {
-                        return@Supplier dicInfo
-                    }
-                } else {
+                if (!dicInfo.readIndexBlock(object : IIndexCacheFile {
+                            override fun getInput(): FileInputStream = FileInputStream(idxFile)
+                            override fun getOutput(): FileOutputStream = FileOutputStream(idxFile)
+                        })) {
+                    dice.close(dicInfo)
                     throw IOException()
+                } else {
+                    return@Supplier dicInfo
                 }
+            } else {
+                throw IOException()
             }
         }, pool)
     }
@@ -94,17 +92,15 @@ class DiceWorker(dics: Iterable<String>) {
         cancelSearchTask()
 
         return CompletableFuture.supplyAsync(Supplier {
-            synchronized(dice) {
-                val dicInfo = dice.getDicInfo(filename)
-                if (dicInfo != null) {
-                    dice.close(dicInfo)
+            val dicInfo = dice.getDicInfo(filename)
+            if (dicInfo != null) {
+                dice.close(dicInfo)
 
-                    // TODO remove index file
+                // TODO remove index file
 
-                    return@Supplier dicInfo
-                } else {
-                    throw IOException()
-                }
+                return@Supplier dicInfo
+            } else {
+                throw IOException()
             }
         }, pool)
     }
@@ -121,24 +117,22 @@ class DiceWorker(dics: Iterable<String>) {
     private fun searchSync(keyword: String): List<DiceResultData> {
         val result = ArrayList<DiceResultData>()
 
-        synchronized(dice) {
-            for (i in 0 until dice.dicNum) {
-                throwInterruptedExceptionIfInterrupted()
-                if (!dice.isEnable(i)) {
-                    continue
-                }
-
-                dice.search(i, keyword)
-                val pr = dice.getResult(i)
-
-                throwInterruptedExceptionIfInterrupted()
-                if (pr.count > 0) {
-                    generateResultDisp(i, pr, result)
-                    generateFooterDisp(i, result)
-                }
-
-                throwInterruptedExceptionIfInterrupted()
+        for (i in 0 until dice.dicNum) {
+            throwInterruptedExceptionIfInterrupted()
+            if (!dice.isEnable(i)) {
+                continue
             }
+
+            dice.search(i, keyword)
+            val pr = dice.getResult(i)
+
+            throwInterruptedExceptionIfInterrupted()
+            if (pr.count > 0) {
+                generateResultDisp(i, pr, result)
+                generateFooterDisp(i, result)
+            }
+
+            throwInterruptedExceptionIfInterrupted()
         }
 
         if (result.size == 0) {
@@ -161,22 +155,20 @@ class DiceWorker(dics: Iterable<String>) {
     private fun moreResultsSync(dic: Int): List<DiceResultData> {
         val result = ArrayList<DiceResultData>()
 
-        synchronized(dice) {
-            throwInterruptedExceptionIfInterrupted()
-            if (!dice.isEnable(dic)) {
-                return result
-            }
-
-            val pr = dice.getMoreResult(dic)
-
-            throwInterruptedExceptionIfInterrupted()
-            if (pr.count > 0) {
-                generateResultDisp(dic, pr, result)
-                //generateFooterDisp(dic, result)
-            }
-
-            throwInterruptedExceptionIfInterrupted()
+        throwInterruptedExceptionIfInterrupted()
+        if (!dice.isEnable(dic)) {
+            return result
         }
+
+        val pr = dice.getMoreResult(dic)
+
+        throwInterruptedExceptionIfInterrupted()
+        if (pr.count > 0) {
+            generateResultDisp(dic, pr, result)
+            //generateFooterDisp(dic, result)
+        }
+
+        throwInterruptedExceptionIfInterrupted()
 
         if (result.size == 0) {
             generateNoneDisp(result)
@@ -249,7 +241,7 @@ class DiceWorker(dics: Iterable<String>) {
 
     @Throws(InterruptedException::class)
     private fun throwInterruptedExceptionIfInterrupted() {
-        if (Thread.currentThread().isInterrupted) {
+        if (Thread.interrupted()) {
             throw InterruptedException()
         }
     }

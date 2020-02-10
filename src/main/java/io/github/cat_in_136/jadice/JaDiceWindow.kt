@@ -53,13 +53,8 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         val timedTextChangeAdapter = TimedTextChangeAdapter(
                 DicePreferenceService.prefSearchForDelay,
                 ChangeListener {
-                    diceWorker.search(searchTextBox.text).whenComplete { result, throwable ->
-                        if (throwable != null) {
-                            throw throwable
-                        }
-                        if (result != null) {
-                            setTextToResultView(result)
-                        }
+                    diceWorker.search(searchTextBox.text).thenApply {
+                        setTextToResultView(it)
                     }
                 })
         searchTextBox.document.addDocumentListener(timedTextChangeAdapter)
@@ -76,13 +71,8 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                     val matcher = pattern.matcher(url.query)
                     if (matcher.find()) {
                         val dic = matcher.group(1).toInt(10)
-                        diceWorker.moreResults(dic).whenComplete { result, throwable ->
-                            if (throwable != null) {
-                                throw throwable
-                            }
-                            if (result != null) {
-                                replaceElementOnResultView(result, sourceElement)
-                            }
+                        diceWorker.moreResults(dic).thenApply {
+                            replaceElementOnResultView(it, sourceElement)
                         }
                     }
                 }
