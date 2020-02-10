@@ -162,22 +162,20 @@ class DiceWorker(dics: Iterable<String>) {
         val result = ArrayList<DiceResultData>()
 
         synchronized(dice) {
-            for (i in 0 until dice.dicNum) {
-                throwInterruptedExceptionIfInterrupted()
-                if (!dice.isEnable(i)) {
-                    continue
-                }
-
-                val pr = dice.getMoreResult(dic)
-
-                throwInterruptedExceptionIfInterrupted()
-                if (pr.count > 0) {
-                    generateResultDisp(i, pr, result)
-                    generateFooterDisp(i, result)
-                }
-
-                throwInterruptedExceptionIfInterrupted()
+            throwInterruptedExceptionIfInterrupted()
+            if (!dice.isEnable(dic)) {
+                return result
             }
+
+            val pr = dice.getMoreResult(dic)
+
+            throwInterruptedExceptionIfInterrupted()
+            if (pr.count > 0) {
+                generateResultDisp(dic, pr, result)
+                //generateFooterDisp(dic, result)
+            }
+
+            throwInterruptedExceptionIfInterrupted()
         }
 
         if (result.size == 0) {
