@@ -4,8 +4,12 @@ import io.github.cat_in_136.misc.SimpleHTMLStreamWriter
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import java.awt.BorderLayout
 import java.util.prefs.PreferenceChangeListener
+import java.util.regex.Pattern
 import javax.swing.*
 import javax.swing.event.ChangeListener
+import javax.swing.event.HyperlinkEvent
+import javax.swing.text.Element
+import javax.swing.text.html.HTMLDocument
 
 
 class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
@@ -62,6 +66,28 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         hamburgerButton.addActionListener {
             popupMenu.show(hamburgerButton, 0, hamburgerButton.height)
         }
+        resultView.addHyperlinkListener { event ->
+            if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+                val url = event.url
+                val sourceElement = event.sourceElement.parentElement
+
+                if (url.path == "/more") {
+                    val pattern = Pattern.compile("dic=([0-9]+)")
+                    val matcher = pattern.matcher(url.query)
+                    if (matcher.find()) {
+                        val dic = matcher.group(1).toInt(10)
+                        diceWorker.moreResults(dic).whenComplete { result, throwable ->
+                            if (throwable != null) {
+                                throw throwable
+                            }
+                            if (result != null) {
+                                replaceElementOnResultView(result, sourceElement)
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         DicePreferenceService.addPreferenceChangeListener(PreferenceChangeListener {
             if (it.key == DicePreferenceService.PREF_DELAY_FOR_SEARCH) {
@@ -81,6 +107,34 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         writer.endElement()
         writer.startElement("body")
 
+        convertDiceResultDataToHtmlString(result, writer)
+
+        writer.endElement()
+        writer.endElement()
+
+        val html = strOut.toString()
+        SwingUtilities.invokeLater {
+            resultView.text = html
+            resultView.select(0, 0)
+        }
+    }
+
+    private fun replaceElementOnResultView(result: List<DiceResultData>, element: Element) {
+        val strOut = StringBuilder()
+        val writer = SimpleHTMLStreamWriter(strOut, true)
+
+        writer.startElement("div")
+        convertDiceResultDataToHtmlString(result, writer)
+        writer.endElement()
+
+        val html = strOut.toString()
+        SwingUtilities.invokeLater {
+            val document = element.document as HTMLDocument
+            document.setOuterHTML(element, html)
+        }
+    }
+
+    private fun convertDiceResultDataToHtmlString(result: List<DiceResultData>, writer: SimpleHTMLStreamWriter) {
         for (data in result) {
             when (data.mode) {
                 DiceResultData.DiceResultDataMode.WORD -> {
@@ -107,7 +161,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                 }
                 DiceResultData.DiceResultDataMode.MORE -> {
                     writer.startElement("div")
-                    writer.startElement("a", mapOf("href" to "about:blank")) // TODO more
+                    writer.startElement("a", mapOf("href" to "file:///more?dic=${data.dic}"))
                     writer.characters("More...")
                     writer.endElement()
                     writer.endElement()
@@ -124,15 +178,6 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                     writer.endElement()
                 }
             }
-        }
-
-        writer.endElement()
-        writer.endElement()
-
-        val html = strOut.toString()
-        SwingUtilities.invokeLater {
-            resultView.text = html
-            resultView.select(0, 0)
         }
     }
 }

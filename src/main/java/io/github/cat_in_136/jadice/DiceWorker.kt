@@ -149,6 +149,45 @@ class DiceWorker(dics: Iterable<String>) {
         return result
     }
 
+    fun moreResults(dic: Int): CompletableFuture<List<DiceResultData>> {
+        cancelSearchTask()
+
+        latestSearchTask = CompletableFuture.supplyAsync(Supplier {
+            moreResultsSync(dic)
+        }, pool)
+        return latestSearchTask
+    }
+
+    private fun moreResultsSync(dic: Int): List<DiceResultData> {
+        val result = ArrayList<DiceResultData>()
+
+        synchronized(dice) {
+            for (i in 0 until dice.dicNum) {
+                throwInterruptedExceptionIfInterrupted()
+                if (!dice.isEnable(i)) {
+                    continue
+                }
+
+                val pr = dice.getMoreResult(dic)
+
+                throwInterruptedExceptionIfInterrupted()
+                if (pr.count > 0) {
+                    generateResultDisp(i, pr, result)
+                    generateFooterDisp(i, result)
+                }
+
+                throwInterruptedExceptionIfInterrupted()
+            }
+        }
+
+        if (result.size == 0) {
+            generateNoneDisp(result)
+        }
+
+        throwInterruptedExceptionIfInterrupted()
+        return result
+    }
+
     private fun generateResultDisp(dic: Int, pr: IdicResult, result: ArrayList<DiceResultData>, pos: Int = -1): Int {
         val info = dice.getDicInfo(dic)
         var posWork = pos
