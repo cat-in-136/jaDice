@@ -3,6 +3,7 @@ package io.github.cat_in_136.jadice
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import java.awt.BorderLayout
 import java.net.URL
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.prefs.PreferenceChangeListener
 import javax.swing.*
@@ -105,7 +106,8 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     private fun parseCommandLink(url: URL): Pair<String?, String?> {
         return if ((url.protocol == "https") && (url.host == "0.0.0.0") && (url.path.startsWith("/"))) {
             val array = url.file.substring(1).split("/")
-            Pair(array.getOrNull(0), array.getOrNull(1))
+            Pair(URLDecoder.decode(array.getOrNull(0), "UTF-8"),
+                    URLDecoder.decode(array.getOrNull(1), "UTF-8"))
         } else {
             Pair(null, null)
         }
