@@ -1,10 +1,12 @@
 package io.github.cat_in_136.jadice
 
+import io.github.cat_in_136.misc.AWTEventQueueTaskExecutor
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import java.awt.BorderLayout
 import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
+import java.util.function.Consumer
 import java.util.prefs.PreferenceChangeListener
 import javax.swing.*
 import javax.swing.event.ChangeListener
@@ -18,6 +20,8 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     private val hamburgerButton = JButton()
     private val resultView = JEditorPane()
     private val renderer = DiceResultHTMLRenderer(this::generateCommandLink)
+
+    private val eventQueueExecutor = AWTEventQueueTaskExecutor()
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -56,10 +60,10 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                 ChangeListener {
                     diceWorker.search(searchTextBox.text).thenApply {
                         renderer.convertDiceResultDataToHtml(it)
-                    }.get().also {
+                    }.thenAcceptAsync(Consumer {
                         resultView.text = it
                         resultView.select(0, 0)
-                    }
+                    }, eventQueueExecutor)
                 })
         searchTextBox.document.addDocumentListener(timedTextChangeAdapter)
         hamburgerButton.addActionListener {
@@ -74,11 +78,11 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                     "more" -> argument?.toIntOrNull(10)?.also { dic ->
                         diceWorker.moreResults(dic).thenApply {
                             renderer.convertDiceResultDataToPartialHtml(it)
-                        }.get().also {
+                        }.thenAcceptAsync(Consumer {
                             val offset = sourceElement.startOffset
                             (sourceElement.document as HTMLDocument).setOuterHTML(sourceElement, it)
                             resultView.select(offset, offset)
-                        }
+                        }, eventQueueExecutor)
                     }
                     "search" -> argument?.also { keyword ->
                         searchTextBox.text = keyword
