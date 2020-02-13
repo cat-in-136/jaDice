@@ -120,25 +120,14 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             }
             addButton.addActionListener {
                 val fileChooser = JFileChooser()
+                fileChooser.isMultiSelectionEnabled = true
                 fileChooser.fileFilter = FileNameExtensionFilter("PDIC File (*.dic)", "dic")
                 fileChooser.isAcceptAllFileFilterUsed = true
 
                 val selected = fileChooser.showOpenDialog(rootPane)
                 if (selected == JFileChooser.APPROVE_OPTION) {
-                    val path = fileChooser.selectedFile.absolutePath
-                    if (dicListModel.contains(path)) {
-                        JOptionPane.showMessageDialog(rootPane, "$path is already added")
-                    } else {
-                        tryToOpenPDICFile(path).whenCompleteAsync { _, e ->
-                            SwingUtilities.invokeAndWait {
-                                if (e != null) {
-                                    JOptionPane.showMessageDialog(rootPane, "failed to open $path")
-                                } else {
-                                    dicListModel.addElement(path)
-                                }
-                            }
-                        }
-                    }
+                    val files = fileChooser.selectedFiles.map { it.absolutePath }
+                    addPDICFiles(files)
                 }
             }
             delButton.addActionListener {
@@ -150,6 +139,37 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
         }
 
         fun getRootComponent(): JComponent = rootPane
+
+        fun addPDICFiles(files: List<String>) {
+            if (files.isEmpty()) {
+                return  // do nothing if empty
+            }
+
+            val alreadyAddedFiles = files.filter(dicListModel::contains)
+            if (alreadyAddedFiles.isNotEmpty()) {
+                JOptionPane.showMessageDialog(rootPane,
+                        "${alreadyAddedFiles.joinToString(",")} is already added")
+                return
+            }
+
+            val tryOpenFutures = files.map {
+                this.tryToOpenPDICFile(it)
+            }.toTypedArray()
+            CompletableFuture.allOf(*tryOpenFutures).whenComplete { _, e ->
+                val failedFiles = tryOpenFutures.mapIndexed { i, future ->
+                    Pair(files[i], future.isCompletedExceptionally)
+                }.filter { it.second }.map { it.first }
+
+                SwingUtilities.invokeAndWait {
+                    if (failedFiles.isEmpty()) {
+                        files.forEach(dicListModel::addElement)
+                    } else {
+                        JOptionPane.showMessageDialog(rootPane,
+                                "Failed to open ${failedFiles.joinToString(",")}")
+                    }
+                }
+            }
+        }
 
         fun tryToOpenPDICFile(path: String): CompletableFuture<IdicInfo> {
             return diceWorker.getDictionaries().thenApplyAsync { dics ->
