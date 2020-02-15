@@ -86,6 +86,8 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
         private val dicListView = JList<String>()
         private val addButton = JButton()
         private val delButton = JButton()
+        private val upButton = JButton()
+        private val downButton = JButton()
 
         init {
             createUIComponents()
@@ -96,6 +98,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
 
             val scrollPane1 = JScrollPane()
             rootPane.add(scrollPane1, BorderLayout.CENTER)
+            dicListView.selectionMode = ListSelectionModel.SINGLE_INTERVAL_SELECTION
             dicListView.model = dicListModel
             scrollPane1.setViewportView(dicListView)
             rootPane.add(scrollPane1, BorderLayout.CENTER)
@@ -112,12 +115,21 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             delButton.text = "Delete"
             delButton.isEnabled = false
             btnPanel.add(delButton, gbc)
+            upButton.text = "Up"
+            upButton.isEnabled = false
+            btnPanel.add(upButton, gbc)
+            downButton.text = "Down"
+            downButton.isEnabled = false
+            btnPanel.add(downButton, gbc)
 
             for (dic in DicePreferenceService.prefDics) {
                 dicListModel.addElement(dic)
             }
             dicListView.addListSelectionListener {
-                delButton.isEnabled = !dicListView.isSelectionEmpty
+                val selectedIndex = dicListView.selectedIndex
+                delButton.isEnabled = selectedIndex >= 0
+                upButton.isEnabled = selectedIndex >= 1
+                downButton.isEnabled = (selectedIndex >= 0) && (selectedIndex < dicListView.model.size - 1)
             }
             addButton.addActionListener {
                 val fileChooser = JFileChooser()
@@ -135,6 +147,22 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
                 val selectedIndex = dicListView.selectedIndex
                 if (selectedIndex >= 0) {
                     dicListModel.removeElementAt(selectedIndex)
+                }
+            }
+            upButton.addActionListener {
+                val selectedIndex = dicListView.selectedIndex
+                if (selectedIndex >= 1) {
+                    val value = dicListModel.remove(selectedIndex)
+                    dicListModel.add(selectedIndex - 1, value)
+                    dicListView.selectedIndex = selectedIndex - 1
+                }
+            }
+            downButton.addActionListener {
+                val selectedIndex = dicListView.selectedIndex
+                if ((selectedIndex >= 0) && (selectedIndex < dicListView.model.size - 1)) {
+                    val value = dicListModel.remove(selectedIndex)
+                    dicListModel.add(selectedIndex + 1, value)
+                    dicListView.selectedIndex = selectedIndex + 1
                 }
             }
         }
