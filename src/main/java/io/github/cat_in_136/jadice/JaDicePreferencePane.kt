@@ -2,6 +2,7 @@ package io.github.cat_in_136.jadice
 
 import jp.sblo.pandora.dice.IdicInfo
 import java.awt.*
+import java.io.File
 import java.util.concurrent.CompletableFuture
 import javax.swing.*
 import javax.swing.filechooser.FileNameExtensionFilter
@@ -100,6 +101,18 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             rootPane.add(scrollPane1, BorderLayout.CENTER)
             dicListView.selectionMode = ListSelectionModel.SINGLE_INTERVAL_SELECTION
             dicListView.model = dicListModel
+            dicListView.cellRenderer = object : DefaultListCellRenderer() {
+                override fun getListCellRendererComponent(list: JList<*>,
+                                                          value: Any,
+                                                          index: Int,
+                                                          isSelected: Boolean,
+                                                          cellHasFocus: Boolean): Component {
+                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+                    this.text = value.toString().split(File.separatorChar).last()
+                    this.toolTipText = value.toString()
+                    return this
+                }
+            }
             scrollPane1.setViewportView(dicListView)
             rootPane.add(scrollPane1, BorderLayout.CENTER)
             val btnPanel = JPanel()
