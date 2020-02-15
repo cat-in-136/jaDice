@@ -1,6 +1,7 @@
 package io.github.cat_in_136.jadice
 
 import io.github.cat_in_136.misc.SimpleHTMLStreamWriter
+import java.io.File
 import java.util.regex.Pattern
 
 
@@ -68,8 +69,13 @@ class DiceResultHTMLRenderer(private val generateCommandLinkFunc: (String, Strin
                     writer.endElement()
                 }
                 DiceResultData.DiceResultDataMode.FOOTER -> {
+                    val dicPath = data.index.toString()
+                    val dicName = dicPath.split(File.separatorChar).last()
                     writer.startElement("div")
-                    writer.characters("from ${data.index.toString()}")
+                    writer.characters("from $dicName ")
+                    writer.startElement("small")
+                    writer.characters("($dicPath)")
+                    writer.endElement()
                     writer.endElement()
                     writer.emptyElement("hr")
                 }
