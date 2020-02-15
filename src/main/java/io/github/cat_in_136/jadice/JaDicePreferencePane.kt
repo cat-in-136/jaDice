@@ -43,7 +43,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
 
     private class SearchPref {
         private val delayForSearchTextField = JFormattedTextField()
-        private val searchDelayCheckBox = JCheckBox()
+        private val normalizeSearchCheckBox = JCheckBox()
         private val rootPane = JPanel()
 
         init {
@@ -66,15 +66,16 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             delayForSearchTextField.columns = 4
             delayForSearchLabel.labelFor = delayForSearchTextField
             delayForSearchPanel.add(delayForSearchTextField)
-            searchDelayCheckBox.text = "Normalize search word"
-            searchDelayCheckBox.isEnabled = false
-            rootPane.add(searchDelayCheckBox, gbc)
+            normalizeSearchCheckBox.text = "Normalize search word"
+            normalizeSearchCheckBox.isSelected = DicePreferenceService.prefNormalizeSearch
+            rootPane.add(normalizeSearchCheckBox, gbc)
         }
 
         fun getRootComponent(): JComponent = rootPane
 
         fun applyToPreference() {
             DicePreferenceService.prefSearchForDelay = delayForSearchTextField.value as Int
+            DicePreferenceService.prefNormalizeSearch = normalizeSearchCheckBox.isSelected
         }
     }
 

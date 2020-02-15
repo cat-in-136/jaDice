@@ -8,11 +8,16 @@ object DicePreferenceService {
     private val prefs = Preferences.userNodeForPackage(DicePreferenceService::class.java)
 
     const val PREF_DELAY_FOR_SEARCH = "PREF_DELAY_FOR_SEARCH"
+    const val PREF_NORMALIZE_SEARCH = "PREF_NORMALIZE_SEARCH"
     const val PREF_DICS = "PREF_DICS"
 
     var prefSearchForDelay
         get() = prefs.getInt(PREF_DELAY_FOR_SEARCH, 100)
         set(value) = prefs.putInt(PREF_DELAY_FOR_SEARCH, value)
+
+    var prefNormalizeSearch
+        get() = prefs.getBoolean(PREF_NORMALIZE_SEARCH, true)
+        set(value) = prefs.putBoolean(PREF_NORMALIZE_SEARCH, value)
 
     var prefDics: List<String>
         get() {

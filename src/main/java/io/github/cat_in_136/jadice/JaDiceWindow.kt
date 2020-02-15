@@ -2,6 +2,7 @@ package io.github.cat_in_136.jadice
 
 import io.github.cat_in_136.misc.AWTEventQueueTaskExecutor
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
+import jp.sblo.pandora.dice.DiceFactory
 import java.awt.BorderLayout
 import java.net.URL
 import java.net.URLDecoder
@@ -58,7 +59,13 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         val timedTextChangeAdapter = TimedTextChangeAdapter(
                 DicePreferenceService.prefSearchForDelay,
                 ChangeListener {
-                    diceWorker.search(searchTextBox.text).thenApply {
+                    val text = if (DicePreferenceService.prefNormalizeSearch) {
+                        DiceFactory.convert(searchTextBox.text)
+                    } else {
+                        searchTextBox.text
+                    }
+
+                    diceWorker.search(text).thenApply {
                         renderer.convertDiceResultDataToHtml(it)
                     }.thenAcceptAsync(Consumer {
                         resultView.text = it
