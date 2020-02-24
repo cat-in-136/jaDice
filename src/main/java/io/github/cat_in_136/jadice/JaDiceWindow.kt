@@ -59,6 +59,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
+        title = bundle.getString("jadice")
 
         createUIComponents()
         pack()

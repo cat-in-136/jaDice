@@ -22,7 +22,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
     fun showDialog(parent: Component) {
         val ret = JOptionPane.showConfirmDialog(parent,
                 this,
-                null,
+                bundle.getString("menu.preference"),
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE)
         if (ret == JOptionPane.OK_OPTION) {
@@ -150,6 +150,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
                 fileChooser.isMultiSelectionEnabled = true
                 fileChooser.fileFilter = FileNameExtensionFilter(bundle.getString("preference.file_chooser.filter.pdic"), "dic")
                 fileChooser.isAcceptAllFileFilterUsed = true
+                fileChooser.dialogTitle = addButton.text
 
                 val selected = fileChooser.showOpenDialog(rootPane)
                 if (selected == JFileChooser.APPROVE_OPTION) {
