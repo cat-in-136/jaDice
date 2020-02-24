@@ -4,6 +4,8 @@ import io.github.cat_in_136.misc.AWTEventQueueTaskExecutor
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import jp.sblo.pandora.dice.DiceFactory
 import java.awt.BorderLayout
+import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
 import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -24,6 +26,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     private val renderer = DiceResultHTMLRenderer(this::generateCommandLink)
 
     private val eventQueueExecutor = AWTEventQueueTaskExecutor()
+    private var clipboardTimer: javax.swing.Timer? = null
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -64,6 +67,15 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
             this.isAlwaysOnTop = alwaysOnTopMenuItem.isSelected
         }
         popupMenu.add(alwaysOnTopMenuItem)
+        val watchClipboardMenuItem = JCheckBoxMenuItem()
+        watchClipboardMenuItem.text = bundle.getString("watch_clip_board")
+        watchClipboardMenuItem.addActionListener {
+            stopClipboardWatcher()
+            if (watchClipboardMenuItem.isSelected) {
+                startClipboardWatcher()
+            }
+        }
+        popupMenu.add(watchClipboardMenuItem)
 
         val timedTextChangeAdapter = TimedTextChangeAdapter(
                 DicePreferenceService.prefSearchForDelay,
@@ -130,6 +142,29 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                     URLDecoder.decode(array.getOrNull(1), "UTF-8"))
         } else {
             Pair(null, null)
+        }
+    }
+
+    private fun startClipboardWatcher() {
+        val clipboardTimer = javax.swing.Timer(1000, null) // TODO let clipboard interval configurable
+        clipboardTimer.addActionListener {
+            if (!this.isFocused) {
+                try {
+                    val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+                    searchTextBox.text = clipboard.getData(DataFlavor.stringFlavor) as String
+                } catch (e: Exception) {
+                    // ignore all exception
+                }
+            }
+        }
+        clipboardTimer.start()
+        this.clipboardTimer = clipboardTimer
+    }
+
+    private fun stopClipboardWatcher() {
+        if (this.clipboardTimer != null) {
+            this.clipboardTimer?.stop()
+            this.clipboardTimer = null
         }
     }
 
