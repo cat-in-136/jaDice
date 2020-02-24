@@ -50,9 +50,20 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         scrollPane1.setViewportView(resultView)
 
         val popupMenu = JPopupMenu()
-        popupMenu.add(bundle.getString("preference")).addActionListener {
+        val preferenceMenuItem = JMenuItem()
+        preferenceMenuItem.text = bundle.getString("preference")
+        preferenceMenuItem.addActionListener {
             JaDicePreferencePane(diceWorker).showDialog(this)
         }
+        popupMenu.add(preferenceMenuItem)
+        val alwaysOnTopMenuItem = JCheckBoxMenuItem()
+        alwaysOnTopMenuItem.text = bundle.getString("always_on_top")
+        alwaysOnTopMenuItem.isEnabled = this.isAlwaysOnTopSupported
+        alwaysOnTopMenuItem.isSelected = this.isAlwaysOnTop
+        alwaysOnTopMenuItem.addActionListener {
+            this.isAlwaysOnTop = alwaysOnTopMenuItem.isSelected
+        }
+        popupMenu.add(alwaysOnTopMenuItem)
 
         val timedTextChangeAdapter = TimedTextChangeAdapter(
                 DicePreferenceService.prefSearchForDelay,
