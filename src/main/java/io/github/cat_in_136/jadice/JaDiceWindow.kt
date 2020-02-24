@@ -7,6 +7,7 @@ import java.awt.BorderLayout
 import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
+import java.util.*
 import java.util.function.Consumer
 import java.util.prefs.PreferenceChangeListener
 import javax.swing.*
@@ -45,14 +46,11 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         rootPane.add(scrollPane1, BorderLayout.CENTER)
         resultView.contentType = "text/html"
         resultView.isEditable = false
-        resultView.text = """
-                <h1>jaDice</h1>
-                <p>jaDice is the viewer for dictionaries of PDIC format.</p>
-            """.trimIndent()
+        resultView.text = bundle.getString("result.welcome")
         scrollPane1.setViewportView(resultView)
 
         val popupMenu = JPopupMenu()
-        popupMenu.add("Setting").addActionListener {
+        popupMenu.add(bundle.getString("preference")).addActionListener {
             JaDicePreferencePane(diceWorker).showDialog(this)
         }
 
@@ -122,5 +120,9 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         } else {
             Pair(null, null)
         }
+    }
+
+    companion object {
+        private val bundle = ResourceBundle.getBundle("jadice")
     }
 }

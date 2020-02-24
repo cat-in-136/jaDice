@@ -3,6 +3,7 @@ package io.github.cat_in_136.jadice
 import jp.sblo.pandora.dice.IdicInfo
 import java.awt.*
 import java.io.File
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import javax.swing.*
 import javax.swing.filechooser.FileNameExtensionFilter
@@ -31,8 +32,8 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
 
     private fun createUIComponents() {
         this.add(tabbedPane, BorderLayout.CENTER)
-        tabbedPane.addTab("Search", searchPref.getRootComponent())
-        tabbedPane.addTab("Dictionaries", dictionaryPref.getRootComponent())
+        tabbedPane.addTab(bundle.getString("preference.search"), searchPref.getRootComponent())
+        tabbedPane.addTab(bundle.getString("preference.dictionaries"), dictionaryPref.getRootComponent())
     }
 
     private fun applyToPreference() {
@@ -60,14 +61,14 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             gbc.gridwidth = GridBagConstraints.REMAINDER
             rootPane.add(delayForSearchPanel, gbc)
             val delayForSearchLabel = JLabel()
-            delayForSearchLabel.text = "Delay time for incremental search"
+            delayForSearchLabel.text = bundle.getString("preference.search.delayForTime")
             delayForSearchPanel.add(delayForSearchLabel)
             delayForSearchTextField.value = DicePreferenceService.prefSearchForDelay
             delayForSearchTextField.horizontalAlignment = JTextField.TRAILING
             delayForSearchTextField.columns = 4
             delayForSearchLabel.labelFor = delayForSearchTextField
             delayForSearchPanel.add(delayForSearchTextField)
-            normalizeSearchCheckBox.text = "Normalize search word"
+            normalizeSearchCheckBox.text = bundle.getString("preference.search.normalizeSearch")
             normalizeSearchCheckBox.isSelected = DicePreferenceService.prefNormalizeSearch
             rootPane.add(normalizeSearchCheckBox, gbc)
         }
@@ -123,15 +124,15 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             gbc.fill = GridBagConstraints.HORIZONTAL
             gbc.gridwidth = GridBagConstraints.REMAINDER
             gbc.insets = Insets(2, 0, 2, 0)
-            addButton.text = "Add"
+            addButton.text = bundle.getString("preference.dictionaries.add")
             btnPanel.add(addButton, gbc)
-            delButton.text = "Delete"
+            delButton.text = bundle.getString("preference.dictionaries.delete")
             delButton.isEnabled = false
             btnPanel.add(delButton, gbc)
-            upButton.text = "Up"
+            upButton.text = bundle.getString("preference.dictionaries.up")
             upButton.isEnabled = false
             btnPanel.add(upButton, gbc)
-            downButton.text = "Down"
+            downButton.text = bundle.getString("preference.dictionaries.down")
             downButton.isEnabled = false
             btnPanel.add(downButton, gbc)
 
@@ -147,7 +148,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             addButton.addActionListener {
                 val fileChooser = JFileChooser()
                 fileChooser.isMultiSelectionEnabled = true
-                fileChooser.fileFilter = FileNameExtensionFilter("PDIC File (*.dic)", "dic")
+                fileChooser.fileFilter = FileNameExtensionFilter(bundle.getString("preference.file_chooser.filter.pdic"), "dic")
                 fileChooser.isAcceptAllFileFilterUsed = true
 
                 val selected = fileChooser.showOpenDialog(rootPane)
@@ -190,7 +191,8 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             val alreadyAddedFiles = files.filter(dicListModel::contains)
             if (alreadyAddedFiles.isNotEmpty()) {
                 JOptionPane.showMessageDialog(rootPane,
-                        "${alreadyAddedFiles.joinToString(",")} is already added")
+                        String.format(bundle.getString("preference.dictionaries.error.already"),
+                                alreadyAddedFiles.joinToString(",")))
                 return
             }
 
@@ -207,7 +209,8 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
                         files.forEach(dicListModel::addElement)
                     } else {
                         JOptionPane.showMessageDialog(rootPane,
-                                "Failed to open ${failedFiles.joinToString(",")}")
+                                String.format(bundle.getString("preference.dictionaries.error.io"),
+                                        failedFiles.joinToString(",")))
                     }
                 }
             }
@@ -233,5 +236,9 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
                 }
             }
         }
+    }
+
+    companion object {
+        private val bundle = ResourceBundle.getBundle("jadice")
     }
 }

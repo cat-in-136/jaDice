@@ -2,6 +2,7 @@ package io.github.cat_in_136.jadice
 
 import io.github.cat_in_136.misc.SimpleHTMLStreamWriter
 import java.io.File
+import java.util.*
 import java.util.regex.Pattern
 
 
@@ -64,7 +65,7 @@ class DiceResultHTMLRenderer(private val generateCommandLinkFunc: (String, Strin
                     writer.startElement("a", mapOf(
                             "href" to generateCommandLinkFunc("more", data.dic.toString())
                     ))
-                    writer.characters("More...")
+                    writer.characters(bundle.getString("result.more"))
                     writer.endElement()
                     writer.endElement()
                 }
@@ -72,7 +73,7 @@ class DiceResultHTMLRenderer(private val generateCommandLinkFunc: (String, Strin
                     val dicPath = data.index.toString()
                     val dicName = dicPath.split(File.separatorChar).last()
                     writer.startElement("div")
-                    writer.characters("from $dicName ")
+                    writer.characters(String.format(bundle.getString("result.reference"), dicName))
                     writer.startElement("small")
                     writer.characters("($dicPath)")
                     writer.endElement()
@@ -115,7 +116,7 @@ class DiceResultHTMLRenderer(private val generateCommandLinkFunc: (String, Strin
 
             writer.characters(text.subSequence(pos, start), true) // $`
             writer.characters(text.subSequence(start, groupStart), false)
-            writer.startElement("a", mapOf("href" to generateCommandLinkFunc("search", keyword)))
+            writer.startElement("a", mapOf("href" to generateCommandLinkFunc("preference.search", keyword)))
             writer.characters(keyword, false)
             writer.endElement()
             writer.characters(text.subSequence(groupEnd, end), false)
@@ -123,5 +124,9 @@ class DiceResultHTMLRenderer(private val generateCommandLinkFunc: (String, Strin
             pos = end
         }
         writer.characters(text.subSequence(pos, text.length), true)
+    }
+
+    companion object {
+        private val bundle = ResourceBundle.getBundle("jadice")
     }
 }
