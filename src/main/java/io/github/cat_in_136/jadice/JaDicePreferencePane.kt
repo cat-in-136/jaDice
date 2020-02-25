@@ -72,6 +72,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             delayForSearchTextField.columns = 4
             delayForSearchLabel.labelFor = delayForSearchTextField
             delayForSearchPanel.add(delayForSearchTextField)
+            delayForSearchPanel.add(JLabel(bundle.getString("preference.search.timerMilliSec")))
             val intervalForWatchClipboardPanel = JPanel()
             intervalForWatchClipboardPanel.layout = FlowLayout(FlowLayout.CENTER, 5, 5)
             rootPane.add(intervalForWatchClipboardPanel, gbc)
@@ -84,6 +85,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             intervalForWatchClipboardTextField.columns = 4
             intervalForWatchClipboardLabel.labelFor = intervalForWatchClipboardTextField
             intervalForWatchClipboardPanel.add(intervalForWatchClipboardTextField)
+            intervalForWatchClipboardPanel.add(JLabel(bundle.getString("preference.search.timerMilliSec")))
             normalizeSearchCheckBox.text = bundle.getString("preference.search.normalizeSearch")
             normalizeSearchCheckBox.mnemonic = bundle.getString("preference.search.normalizeSearch.mnemonic").first().toInt()
             normalizeSearchCheckBox.isSelected = DicePreferenceService.prefNormalizeSearch
