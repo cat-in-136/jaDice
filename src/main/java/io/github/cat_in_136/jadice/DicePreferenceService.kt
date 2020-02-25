@@ -9,6 +9,7 @@ object DicePreferenceService {
 
     const val PREF_DELAY_FOR_SEARCH = "PREF_DELAY_FOR_SEARCH"
     const val PREF_NORMALIZE_SEARCH = "PREF_NORMALIZE_SEARCH"
+    const val PREF_WATCH_CLIPBOARD = "PREF_WATCH_CLIPBOARD"
     const val PREF_DICS = "PREF_DICS"
 
     var prefSearchForDelay
@@ -18,6 +19,10 @@ object DicePreferenceService {
     var prefNormalizeSearch
         get() = prefs.getBoolean(PREF_NORMALIZE_SEARCH, true)
         set(value) = prefs.putBoolean(PREF_NORMALIZE_SEARCH, value)
+
+    var prefWatchClipboard
+        get() = prefs.getBoolean(PREF_WATCH_CLIPBOARD, false)
+        set(value) = prefs.putBoolean(PREF_WATCH_CLIPBOARD, value)
 
     var prefDics: List<String>
         get() {
