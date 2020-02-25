@@ -146,8 +146,17 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                         startClipboardWatcher()
                     }
                 }
+                DicePreferenceService.PREF_INTERVAL_FOR_WATCHING_CLIPBOARD -> {
+                    stopClipboardWatcher()
+                    if (DicePreferenceService.prefWatchClipboard) {
+                        startClipboardWatcher()
+                    }
+                }
             }
         })
+        if (DicePreferenceService.prefWatchClipboard) {
+            startClipboardWatcher()
+        }
 
         contentPane = rootPane
     }
@@ -170,7 +179,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     }
 
     private fun startClipboardWatcher() {
-        val clipboardTimer = javax.swing.Timer(1000, null) // TODO let clipboard interval configurable
+        val clipboardTimer = javax.swing.Timer(DicePreferenceService.prefIntervalForWatchClipboard, null)
         clipboardTimer.addActionListener {
             if (!this.isFocused) {
                 try {
