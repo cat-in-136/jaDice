@@ -33,7 +33,9 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
     private fun createUIComponents() {
         this.add(tabbedPane, BorderLayout.CENTER)
         tabbedPane.addTab(bundle.getString("preference.search"), searchPref.getRootComponent())
+        tabbedPane.setMnemonicAt(0, bundle.getString("preference.search.mnemonic").first().toInt())
         tabbedPane.addTab(bundle.getString("preference.dictionaries"), dictionaryPref.getRootComponent())
+        tabbedPane.setMnemonicAt(1, bundle.getString("preference.dictionaries.mnemonic").first().toInt())
     }
 
     private fun applyToPreference() {
@@ -62,6 +64,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             rootPane.add(delayForSearchPanel, gbc)
             val delayForSearchLabel = JLabel()
             delayForSearchLabel.text = bundle.getString("preference.search.delayForTime")
+            delayForSearchLabel.displayedMnemonic = bundle.getString("preference.search.delayForTime.mnemonic").first().toInt()
             delayForSearchPanel.add(delayForSearchLabel)
             delayForSearchTextField.value = DicePreferenceService.prefSearchForDelay
             delayForSearchTextField.horizontalAlignment = JTextField.TRAILING
@@ -69,6 +72,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             delayForSearchLabel.labelFor = delayForSearchTextField
             delayForSearchPanel.add(delayForSearchTextField)
             normalizeSearchCheckBox.text = bundle.getString("preference.search.normalizeSearch")
+            normalizeSearchCheckBox.mnemonic = bundle.getString("preference.search.normalizeSearch.mnemonic").first().toInt()
             normalizeSearchCheckBox.isSelected = DicePreferenceService.prefNormalizeSearch
             rootPane.add(normalizeSearchCheckBox, gbc)
         }
@@ -125,14 +129,18 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             gbc.gridwidth = GridBagConstraints.REMAINDER
             gbc.insets = Insets(2, 0, 2, 0)
             addButton.text = bundle.getString("preference.dictionaries.add")
+            addButton.mnemonic = bundle.getString("preference.dictionaries.add.mnemonic").first().toInt()
             btnPanel.add(addButton, gbc)
             delButton.text = bundle.getString("preference.dictionaries.delete")
+            delButton.mnemonic = bundle.getString("preference.dictionaries.delete.mnemonic").first().toInt()
             delButton.isEnabled = false
             btnPanel.add(delButton, gbc)
             upButton.text = bundle.getString("preference.dictionaries.up")
+            upButton.mnemonic = bundle.getString("preference.dictionaries.up.mnemonic").first().toInt()
             upButton.isEnabled = false
             btnPanel.add(upButton, gbc)
             downButton.text = bundle.getString("preference.dictionaries.down")
+            downButton.mnemonic = bundle.getString("preference.dictionaries.down.mnemonic").first().toInt()
             downButton.isEnabled = false
             btnPanel.add(downButton, gbc)
 
