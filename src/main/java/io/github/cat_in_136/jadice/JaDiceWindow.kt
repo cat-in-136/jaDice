@@ -41,12 +41,12 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     private val watchClipboardAction = SimpleAction(bundle.getString("menu.watch_clip_board"),
             null,
             { _, action ->
-                DicePreferenceService.prefWatchClipboard = action.isSelected ?: false
+                DicePreference.prefWatchClipboard = action.isSelected ?: false
             },
             bundle.getString("menu.watch_clip_board.mnemonic").first().toInt(),
             "control W",
             true,
-            DicePreferenceService.prefWatchClipboard)
+            DicePreference.prefWatchClipboard)
 
     private val preferenceAction = SimpleAction(bundle.getString("menu.preference"),
             null,
@@ -95,9 +95,9 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         optionMenu.add(preferenceMenuItem)
 
         val timedTextChangeAdapter = TimedTextChangeAdapter(
-                DicePreferenceService.prefSearchForDelay,
+                DicePreference.prefSearchForDelay,
                 ChangeListener {
-                    val text = if (DicePreferenceService.prefNormalizeSearch) {
+                    val text = if (DicePreference.prefNormalizeSearch) {
                         DiceFactory.convert(searchTextBox.text)
                     } else {
                         searchTextBox.text
@@ -133,28 +133,28 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
             }
         }
 
-        DicePreferenceService.addPreferenceChangeListener(PreferenceChangeListener {
+        DicePreference.addPreferenceChangeListener(PreferenceChangeListener {
             when (it.key) {
-                DicePreferenceService.PREF_DELAY_FOR_SEARCH -> {
-                    timedTextChangeAdapter.delay = DicePreferenceService.prefSearchForDelay
+                DicePreference.PREF_DELAY_FOR_SEARCH -> {
+                    timedTextChangeAdapter.delay = DicePreference.prefSearchForDelay
                 }
-                DicePreferenceService.PREF_WATCH_CLIPBOARD -> {
-                    val prefWatchClipboard = DicePreferenceService.prefWatchClipboard
+                DicePreference.PREF_WATCH_CLIPBOARD -> {
+                    val prefWatchClipboard = DicePreference.prefWatchClipboard
                     watchClipboardAction.isSelected = prefWatchClipboard
                     stopClipboardWatcher()
                     if (prefWatchClipboard) {
                         startClipboardWatcher()
                     }
                 }
-                DicePreferenceService.PREF_INTERVAL_FOR_WATCHING_CLIPBOARD -> {
+                DicePreference.PREF_INTERVAL_FOR_WATCHING_CLIPBOARD -> {
                     stopClipboardWatcher()
-                    if (DicePreferenceService.prefWatchClipboard) {
+                    if (DicePreference.prefWatchClipboard) {
                         startClipboardWatcher()
                     }
                 }
             }
         })
-        if (DicePreferenceService.prefWatchClipboard) {
+        if (DicePreference.prefWatchClipboard) {
             startClipboardWatcher()
         }
 
@@ -179,7 +179,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     }
 
     private fun startClipboardWatcher() {
-        val clipboardTimer = javax.swing.Timer(DicePreferenceService.prefIntervalForWatchClipboard, null)
+        val clipboardTimer = javax.swing.Timer(DicePreference.prefIntervalForWatchClipboard, null)
         clipboardTimer.addActionListener {
             if (!this.isFocused) {
                 try {

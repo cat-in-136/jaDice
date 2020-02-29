@@ -7,7 +7,7 @@ import kotlin.math.max
 object JaDice {
     @JvmStatic
     fun main(args: Array<String>) {
-        val dics = DicePreferenceService.prefDics
+        val dics = DicePreference.prefDics
         val worker = DiceWorker(dics)
 
         SwingUtilities.invokeLater {

@@ -42,7 +42,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
         searchPref.applyToPreference()
         dictionaryPref.applyToPreference()
 
-        DicePreferenceService.flush()
+        DicePreference.flush()
     }
 
     private class SearchPref {
@@ -67,7 +67,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             delayForSearchLabel.text = bundle.getString("preference.search.delayForTime")
             delayForSearchLabel.displayedMnemonic = bundle.getString("preference.search.delayForTime.mnemonic").first().toInt()
             delayForSearchPanel.add(delayForSearchLabel)
-            delayForSearchTextField.value = DicePreferenceService.prefSearchForDelay
+            delayForSearchTextField.value = DicePreference.prefSearchForDelay
             delayForSearchTextField.horizontalAlignment = JTextField.TRAILING
             delayForSearchTextField.columns = 4
             delayForSearchLabel.labelFor = delayForSearchTextField
@@ -80,7 +80,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             intervalForWatchClipboardLabel.text = bundle.getString("preference.search.intervalForWatchClipboard")
             intervalForWatchClipboardLabel.displayedMnemonic = bundle.getString("preference.search.intervalForWatchClipboard.mnemonic").first().toInt()
             intervalForWatchClipboardPanel.add(intervalForWatchClipboardLabel)
-            intervalForWatchClipboardTextField.value = DicePreferenceService.prefIntervalForWatchClipboard
+            intervalForWatchClipboardTextField.value = DicePreference.prefIntervalForWatchClipboard
             intervalForWatchClipboardTextField.horizontalAlignment = JTextField.TRAILING
             intervalForWatchClipboardTextField.columns = 4
             intervalForWatchClipboardLabel.labelFor = intervalForWatchClipboardTextField
@@ -88,16 +88,16 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             intervalForWatchClipboardPanel.add(JLabel(bundle.getString("preference.search.timerMilliSec")))
             normalizeSearchCheckBox.text = bundle.getString("preference.search.normalizeSearch")
             normalizeSearchCheckBox.mnemonic = bundle.getString("preference.search.normalizeSearch.mnemonic").first().toInt()
-            normalizeSearchCheckBox.isSelected = DicePreferenceService.prefNormalizeSearch
+            normalizeSearchCheckBox.isSelected = DicePreference.prefNormalizeSearch
             rootPane.add(normalizeSearchCheckBox, gbc)
         }
 
         fun getRootComponent(): JComponent = rootPane
 
         fun applyToPreference() {
-            DicePreferenceService.prefSearchForDelay = delayForSearchTextField.value as Int
-            DicePreferenceService.prefIntervalForWatchClipboard = intervalForWatchClipboardTextField.value as Int
-            DicePreferenceService.prefNormalizeSearch = normalizeSearchCheckBox.isSelected
+            DicePreference.prefSearchForDelay = delayForSearchTextField.value as Int
+            DicePreference.prefIntervalForWatchClipboard = intervalForWatchClipboardTextField.value as Int
+            DicePreference.prefNormalizeSearch = normalizeSearchCheckBox.isSelected
         }
     }
 
@@ -160,7 +160,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             downButton.isEnabled = false
             btnPanel.add(downButton, gbc)
 
-            for (dic in DicePreferenceService.prefDics) {
+            for (dic in DicePreference.prefDics) {
                 dicListModel.addElement(dic)
             }
             dicListView.addListSelectionListener {
@@ -252,7 +252,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
 
         fun applyToPreference() {
             val prefDics = dicListModel.elements().toList()
-            DicePreferenceService.prefDics = prefDics
+            DicePreference.prefDics = prefDics
 
             diceWorker.removeAllDictionaries().whenCompleteAsync { _, e ->
                 e?.run { throw e }

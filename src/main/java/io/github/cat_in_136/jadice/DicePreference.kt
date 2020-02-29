@@ -4,8 +4,8 @@ import java.io.File
 import java.util.prefs.PreferenceChangeListener
 import java.util.prefs.Preferences
 
-object DicePreferenceService {
-    private val prefs = Preferences.userNodeForPackage(DicePreferenceService::class.java)
+object DicePreference {
+    private val prefs = Preferences.userNodeForPackage(DicePreference::class.java)
 
     const val PREF_DELAY_FOR_SEARCH = "PREF_DELAY_FOR_SEARCH"
     const val PREF_NORMALIZE_SEARCH = "PREF_NORMALIZE_SEARCH"
