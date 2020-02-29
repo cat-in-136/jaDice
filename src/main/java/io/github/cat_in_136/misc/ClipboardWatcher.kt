@@ -35,17 +35,22 @@ class ClipboardWatcher(interval: Int, private val onChange: (String, String?) ->
     private fun onTimerExpired() {
         val oldText = this.text
 
-        try {
-            val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-            this.text = clipboard.getData(DataFlavor.stringFlavor) as String
-        } catch (e: Throwable) {
-            e.printStackTrace()
+        val text = kotlin.runCatching {
+            Toolkit.getDefaultToolkit().systemClipboard
+        }.mapCatching { clipboard ->
+            if (clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
+                clipboard.getData(DataFlavor.stringFlavor) as String
+            } else {
+                return
+            }
+        }.getOrElse {
+            it.printStackTrace()
+            return
         }
 
-        this.text?.also {
-            if (it != oldText) {
-                onChange(it, oldText)
-            }
+        this.text = text
+        if (text != oldText) {
+            onChange(text, oldText)
         }
     }
 }
