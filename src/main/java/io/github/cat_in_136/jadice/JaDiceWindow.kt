@@ -1,12 +1,11 @@
 package io.github.cat_in_136.jadice
 
 import io.github.cat_in_136.misc.AWTEventQueueTaskExecutor
+import io.github.cat_in_136.misc.ClipboardWatcher
 import io.github.cat_in_136.misc.SimpleAction
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import jp.sblo.pandora.dice.DiceFactory
 import java.awt.BorderLayout
-import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor
 import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -26,7 +25,11 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     private val renderer = DiceResultHTMLRenderer(this::generateCommandLink)
 
     private val eventQueueExecutor = AWTEventQueueTaskExecutor()
-    private var clipboardTimer: javax.swing.Timer? = null
+    private val clipboardWatcher = ClipboardWatcher(DicePreference.prefIntervalForWatchClipboard) { current, _ ->
+        if (!isFocused) {
+            searchTextBox.text = current
+        }
+    }
 
     private val alwaysOnTopAction = SimpleAction(bundle.getString("menu.always_on_top"),
             null,
@@ -141,21 +144,19 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                 DicePreference.PREF_WATCH_CLIPBOARD -> {
                     val prefWatchClipboard = DicePreference.prefWatchClipboard
                     watchClipboardAction.isSelected = prefWatchClipboard
-                    stopClipboardWatcher()
                     if (prefWatchClipboard) {
-                        startClipboardWatcher()
+                        clipboardWatcher.start()
+                    } else {
+                        clipboardWatcher.stop()
                     }
                 }
                 DicePreference.PREF_INTERVAL_FOR_WATCHING_CLIPBOARD -> {
-                    stopClipboardWatcher()
-                    if (DicePreference.prefWatchClipboard) {
-                        startClipboardWatcher()
-                    }
+                    clipboardWatcher.interval = DicePreference.prefIntervalForWatchClipboard
                 }
             }
         })
         if (DicePreference.prefWatchClipboard) {
-            startClipboardWatcher()
+            clipboardWatcher.start()
         }
 
         contentPane = rootPane
@@ -175,29 +176,6 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                     URLDecoder.decode(array.getOrNull(1), "UTF-8"))
         } else {
             Pair(null, null)
-        }
-    }
-
-    private fun startClipboardWatcher() {
-        val clipboardTimer = javax.swing.Timer(DicePreference.prefIntervalForWatchClipboard, null)
-        clipboardTimer.addActionListener {
-            if (!this.isFocused) {
-                try {
-                    val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-                    searchTextBox.text = clipboard.getData(DataFlavor.stringFlavor) as String
-                } catch (e: Exception) {
-                    // ignore all exception
-                }
-            }
-        }
-        clipboardTimer.start()
-        this.clipboardTimer = clipboardTimer
-    }
-
-    private fun stopClipboardWatcher() {
-        if (this.clipboardTimer != null) {
-            this.clipboardTimer?.stop()
-            this.clipboardTimer = null
         }
     }
 
