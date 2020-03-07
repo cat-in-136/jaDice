@@ -25,3 +25,10 @@ compileKotlin {
         jvmTarget = "1.8"
     }
 }
+
+applicationDistribution.from('LICENSE.txt'){
+    into('')
+}
+applicationDistribution.from('README.md'){
+    into('')
+}
