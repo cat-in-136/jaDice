@@ -57,6 +57,18 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
             bundle.getString("menu.preference.mnemonic").first().toInt(),
             "control S")
 
+    private val resultViewCopyAction = SimpleAction(bundle.getString("result.popup.copy"),
+            null,
+            { _, _ -> resultView.copy() },
+            bundle.getString("result.popup.copy.mnemonic").first().toInt(),
+            "control C")
+
+    private val resultViewSearchAction = SimpleAction(bundle.getString("result.popup.search"),
+            null,
+            { _, _ -> searchTextBox.text = resultView.selectedText.trim() },
+            bundle.getString("result.popup.search.mnemonic").first().toInt())
+
+
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
         title = bundle.getString("jadice")
@@ -78,7 +90,19 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         resultView.contentType = "text/html"
         resultView.isEditable = false
         resultView.text = bundle.getString("result.welcome")
+        resultView.addCaretListener {
+            val isSelected = resultView.selectedText?.isNotBlank() ?: false
+            resultViewCopyAction.isEnabled = isSelected
+            resultViewSearchAction.isEnabled = isSelected
+        }
         scrollPane1.setViewportView(resultView)
+
+        val resultViewPopupMenu = JPopupMenu()
+        resultView.componentPopupMenu = resultViewPopupMenu
+        val resultViewCopyMenuItem = JMenuItem(resultViewCopyAction)
+        resultViewPopupMenu.add(resultViewCopyMenuItem)
+        val resultViewSearchMenuItem = JMenuItem(resultViewSearchAction)
+        resultViewPopupMenu.add(resultViewSearchMenuItem)
 
         val menuBar = JMenuBar()
         this.jMenuBar = menuBar
