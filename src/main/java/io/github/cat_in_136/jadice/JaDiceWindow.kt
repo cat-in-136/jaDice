@@ -34,30 +34,30 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         }
     }
 
-    private val alwaysOnTopAction = SimpleAction(bundle.getString("menu.always_on_top"),
+    private val alwaysOnTopAction = SimpleAction(bundle.getString("toolbar.always_on_top"),
             null,
             { _, action ->
                 this.isAlwaysOnTop = action.isSelected ?: false
             },
-            bundle.getString("menu.always_on_top.mnemonic").first().toInt(),
+            bundle.getString("toolbar.always_on_top.mnemonic").first().toInt(),
             "control T",
             this.isAlwaysOnTopSupported,
             false)
 
-    private val watchClipboardAction = SimpleAction(bundle.getString("menu.watch_clip_board"),
+    private val watchClipboardAction = SimpleAction(bundle.getString("toolbar.watch_clip_board"),
             null,
             { _, action ->
                 DicePreference.prefWatchClipboard = action.isSelected ?: false
             },
-            bundle.getString("menu.watch_clip_board.mnemonic").first().toInt(),
+            bundle.getString("toolbar.watch_clip_board.mnemonic").first().toInt(),
             "control W",
             true,
             DicePreference.prefWatchClipboard)
 
-    private val preferenceAction = SimpleAction(bundle.getString("menu.preference"),
+    private val preferenceAction = SimpleAction(bundle.getString("toolbar.preference"),
             null,
             { _, _ -> JaDicePreferencePane(diceWorker).showDialog(this) },
-            bundle.getString("menu.preference.mnemonic").first().toInt(),
+            bundle.getString("toolbar.preference.mnemonic").first().toInt(),
             "control S")
 
     private val resultViewCopyAction = SimpleAction(bundle.getString("result.popup.copy"),
