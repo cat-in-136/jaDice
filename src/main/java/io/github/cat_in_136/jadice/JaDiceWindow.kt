@@ -6,6 +6,8 @@ import io.github.cat_in_136.misc.SimpleAction
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import jp.sblo.pandora.dice.DiceFactory
 import java.awt.BorderLayout
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -20,6 +22,7 @@ import javax.swing.text.html.HTMLDocument
 
 class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
 
+    private val toolBar = JToolBar()
     private val searchTextBox = JTextField()
     private val resultView = JEditorPane()
     private val renderer = DiceResultHTMLRenderer(this::generateCommandLink)
@@ -31,30 +34,30 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         }
     }
 
-    private val alwaysOnTopAction = SimpleAction(bundle.getString("menu.always_on_top"),
+    private val alwaysOnTopAction = SimpleAction(bundle.getString("toolbar.always_on_top"),
             null,
             { _, action ->
                 this.isAlwaysOnTop = action.isSelected ?: false
             },
-            bundle.getString("menu.always_on_top.mnemonic").first().toInt(),
+            bundle.getString("toolbar.always_on_top.mnemonic").first().toInt(),
             "control T",
             this.isAlwaysOnTopSupported,
             false)
 
-    private val watchClipboardAction = SimpleAction(bundle.getString("menu.watch_clip_board"),
+    private val watchClipboardAction = SimpleAction(bundle.getString("toolbar.watch_clip_board"),
             null,
             { _, action ->
                 DicePreference.prefWatchClipboard = action.isSelected ?: false
             },
-            bundle.getString("menu.watch_clip_board.mnemonic").first().toInt(),
+            bundle.getString("toolbar.watch_clip_board.mnemonic").first().toInt(),
             "control W",
             true,
             DicePreference.prefWatchClipboard)
 
-    private val preferenceAction = SimpleAction(bundle.getString("menu.preference"),
+    private val preferenceAction = SimpleAction(bundle.getString("toolbar.preference"),
             null,
             { _, _ -> JaDicePreferencePane(diceWorker).showDialog(this) },
-            bundle.getString("menu.preference.mnemonic").first().toInt(),
+            bundle.getString("toolbar.preference.mnemonic").first().toInt(),
             "control S")
 
     private val resultViewCopyAction = SimpleAction(bundle.getString("result.popup.copy"),
@@ -82,9 +85,14 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
 
         rootPane.layout = BorderLayout(0, 0)
         val topBar = JPanel()
-        topBar.layout = BorderLayout(0, 0)
+        topBar.layout = GridBagLayout()
         rootPane.add(topBar, BorderLayout.NORTH)
-        topBar.add(searchTextBox, BorderLayout.CENTER)
+        val gbc = GridBagConstraints()
+        gbc.weightx = 1.0
+        gbc.fill = GridBagConstraints.HORIZONTAL
+        gbc.gridwidth = GridBagConstraints.REMAINDER
+        topBar.add(toolBar, gbc)
+        topBar.add(searchTextBox, gbc)
         val scrollPane1 = JScrollPane()
         rootPane.add(scrollPane1, BorderLayout.CENTER)
         resultView.contentType = "text/html"
@@ -104,22 +112,14 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         val resultViewSearchMenuItem = JMenuItem(resultViewSearchAction)
         resultViewPopupMenu.add(resultViewSearchMenuItem)
 
-        val menuBar = JMenuBar()
-        this.jMenuBar = menuBar
-        val viewMenu = JMenu()
-        viewMenu.text = bundle.getString("menu.view")
-        viewMenu.mnemonic = bundle.getString("menu.view.mnemonic").first().toInt()
-        menuBar.add(viewMenu)
-        val alwaysOnTopMenuItem = JCheckBoxMenuItem(alwaysOnTopAction)
-        viewMenu.add(alwaysOnTopMenuItem)
-        val optionMenu = JMenu()
-        optionMenu.text = bundle.getString("menu.option")
-        optionMenu.mnemonic = bundle.getString("menu.option.mnemonic").first().toInt()
-        menuBar.add(optionMenu)
-        val watchClipboardMenuItem = JCheckBoxMenuItem(watchClipboardAction)
-        optionMenu.add(watchClipboardMenuItem)
-        val preferenceMenuItem = JMenuItem(preferenceAction)
-        optionMenu.add(preferenceMenuItem)
+        toolBar.isFloatable = false
+        toolBar.isRollover = true
+        val alwaysOnTopMenuItem = JToggleButton(alwaysOnTopAction)
+        toolBar.add(alwaysOnTopMenuItem)
+        val watchClipboardMenuItem = JToggleButton(watchClipboardAction)
+        toolBar.add(watchClipboardMenuItem)
+        val preferenceMenuItem = JButton(preferenceAction)
+        toolBar.add(preferenceMenuItem)
 
         val timedTextChangeAdapter = TimedTextChangeAdapter(
                 DicePreference.prefSearchForDelay,

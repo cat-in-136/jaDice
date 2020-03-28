@@ -44,7 +44,7 @@ class ClipboardWatcher(interval: Int, private val onChange: (String, String?) ->
                 return
             }
         }.getOrElse {
-            it.printStackTrace()
+            //it.printStackTrace()
             return
         }
 

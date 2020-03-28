@@ -22,7 +22,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
     fun showDialog(parent: Component) {
         val ret = JOptionPane.showConfirmDialog(parent,
                 this,
-                bundle.getString("menu.preference"),
+                bundle.getString("toolbar.preference"),
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE)
         if (ret == JOptionPane.OK_OPTION) {
