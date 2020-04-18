@@ -8,6 +8,7 @@ import jp.sblo.pandora.dice.DiceFactory
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.Toolkit
 import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -75,6 +76,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
         title = bundle.getString("jadice")
+        iconImage = Toolkit.getDefaultToolkit().createImage(ClassLoader.getSystemResource("jadice.png"))
 
         createUIComponents()
         pack()
