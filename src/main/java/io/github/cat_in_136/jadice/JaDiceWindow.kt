@@ -190,10 +190,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
     }
 
     private fun generateCommandLink(command: String, arguments: String): String {
-        return "https://0.0.0.0/" +
-                URLEncoder.encode(command, "UTF-8") +
-                "/" +
-                URLEncoder.encode(arguments, "UTF-8")
+        return "https://0.0.0.0/${URLEncoder.encode(command, "UTF-8")}/${URLEncoder.encode(arguments, "UTF-8")}"
     }
 
     private fun parseCommandLink(url: URL): Pair<String?, String?> {
