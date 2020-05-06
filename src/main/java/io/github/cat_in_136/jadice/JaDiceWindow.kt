@@ -80,6 +80,7 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
 
         createUIComponents()
         pack()
+        searchTextBox.requestFocusInWindow()
     }
 
     private fun createUIComponents() {
