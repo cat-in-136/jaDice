@@ -5,10 +5,7 @@ import io.github.cat_in_136.misc.ClipboardWatcher
 import io.github.cat_in_136.misc.SimpleAction
 import io.github.cat_in_136.misc.TimedTextChangeAdapter
 import jp.sblo.pandora.dice.DiceFactory
-import java.awt.BorderLayout
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import java.awt.Toolkit
+import java.awt.*
 import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -158,6 +155,11 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                     }
                     "search" -> argument?.also { keyword ->
                         searchTextBox.text = keyword
+                    }
+                    null -> if (argument == null) {
+                        if (Desktop.isDesktopSupported()) {
+                            Desktop.getDesktop().browse(event.url.toURI())
+                        }
                     }
                 }
             }
