@@ -91,8 +91,8 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         gbc.weightx = 1.0
         gbc.fill = GridBagConstraints.HORIZONTAL
         gbc.gridwidth = GridBagConstraints.REMAINDER
-        topBar.add(toolBar, gbc)
         topBar.add(searchTextBox, gbc)
+        topBar.add(toolBar, gbc)
         val scrollPane1 = JScrollPane()
         rootPane.add(scrollPane1, BorderLayout.CENTER)
         resultView.contentType = "text/html"
@@ -112,15 +112,6 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
         val resultViewSearchMenuItem = JMenuItem(resultViewSearchAction)
         resultViewPopupMenu.add(resultViewSearchMenuItem)
 
-        toolBar.isFloatable = false
-        toolBar.isRollover = true
-        val alwaysOnTopMenuItem = JToggleButton(alwaysOnTopAction)
-        toolBar.add(alwaysOnTopMenuItem)
-        val watchClipboardMenuItem = JToggleButton(watchClipboardAction)
-        toolBar.add(watchClipboardMenuItem)
-        val preferenceMenuItem = JButton(preferenceAction)
-        toolBar.add(preferenceMenuItem)
-
         val timedTextChangeAdapter = TimedTextChangeAdapter(
                 DicePreference.prefSearchForDelay,
                 ChangeListener {
@@ -138,6 +129,16 @@ class JaDiceWindow(private val diceWorker: DiceWorker) : JFrame() {
                     }, eventQueueExecutor)
                 })
         searchTextBox.document.addDocumentListener(timedTextChangeAdapter)
+
+        toolBar.isFloatable = false
+        toolBar.isRollover = true
+        val alwaysOnTopMenuItem = JToggleButton(alwaysOnTopAction)
+        toolBar.add(alwaysOnTopMenuItem)
+        val watchClipboardMenuItem = JToggleButton(watchClipboardAction)
+        toolBar.add(watchClipboardMenuItem)
+        val preferenceMenuItem = JButton(preferenceAction)
+        toolBar.add(preferenceMenuItem)
+
         resultView.addHyperlinkListener { event ->
             if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
                 val sourceElement = event.sourceElement.parentElement
