@@ -134,6 +134,9 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
                     return this
                 }
             }
+            dicListView.dragEnabled = true
+            dicListView.dropMode=DropMode.INSERT
+            dicListView.transferHandler = ListReorderTransferHandler(dicListView)
             scrollPane1.setViewportView(dicListView)
             rootPane.add(scrollPane1, BorderLayout.CENTER)
             val btnPanel = JPanel()
