@@ -1,17 +1,16 @@
 package io.github.cat_in_136.jadice
 
+import io.github.cat_in_136.misc.TransferableObject
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
-import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
-import java.io.IOException
 import javax.swing.DefaultListModel
 import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.TransferHandler
 
 class DicListTransferHandler(var list: JList<String>) : TransferHandler() {
-    val listItemFlavor = DataFlavor(list.javaClass, "item of list")
+    private val listItemFlavor = DataFlavor(list.javaClass, "item of list")
     private var srcIndex = -1
     private var dstIndex = -1
 
@@ -24,25 +23,7 @@ class DicListTransferHandler(var list: JList<String>) : TransferHandler() {
 
     override fun createTransferable(c: JComponent): Transferable {
         srcIndex = list.selectedIndex
-        val transferredObjects = list.selectedValue
-        return object : Transferable {
-            override fun getTransferDataFlavors(): Array<DataFlavor> {
-                return arrayOf(listItemFlavor)
-            }
-
-            override fun isDataFlavorSupported(flavor: DataFlavor): Boolean {
-                return listItemFlavor == flavor
-            }
-
-            @Throws(UnsupportedFlavorException::class, IOException::class)
-            override fun getTransferData(flavor: DataFlavor): Any {
-                return if (isDataFlavorSupported(flavor)) {
-                    transferredObjects
-                } else {
-                    throw UnsupportedFlavorException(flavor)
-                }
-            }
-        }
+        return TransferableObject(list.selectedValue, listItemFlavor)
     }
 
     override fun getSourceActions(c: JComponent): Int {
