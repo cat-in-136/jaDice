@@ -120,7 +120,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
 
             val scrollPane1 = JScrollPane()
             rootPane.add(scrollPane1, BorderLayout.CENTER)
-            dicListView.selectionMode = ListSelectionModel.SINGLE_INTERVAL_SELECTION
+            dicListView.selectionMode = ListSelectionModel.SINGLE_SELECTION
             dicListView.model = dicListModel
             dicListView.cellRenderer = object : DefaultListCellRenderer() {
                 override fun getListCellRendererComponent(list: JList<*>,
