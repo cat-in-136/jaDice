@@ -60,7 +60,8 @@ class DicListTransferHandler(var list: JList<String>) : TransferHandler() {
         if (support.isDataFlavorSupported(listItemFlavor)) {
             val data = runCatching { support.transferable.getTransferData(listItemFlavor) as String }
                     .getOrElse { return false }
-            listModel.add(dl.index, data)
+            dstIndex = dl.index
+            listModel.add(dstIndex, data)
             return true
         } else if (fileAddHandler != null && support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
             @Suppress("UNCHECKED_CAST")
