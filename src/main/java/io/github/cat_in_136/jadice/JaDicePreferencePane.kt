@@ -232,7 +232,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             val tryOpenFutures = filenames.map {
                 this.tryToOpenPDICFile(it)
             }.toTypedArray()
-            CompletableFuture.allOf(*tryOpenFutures).whenComplete { _, e ->
+            CompletableFuture.allOf(*tryOpenFutures).whenComplete { _, _ ->
                 val failedFiles = tryOpenFutures.mapIndexed { i, future ->
                     Pair(filenames[i], future.isCompletedExceptionally)
                 }.filter { it.second }.map { it.first }
