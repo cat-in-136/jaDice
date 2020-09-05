@@ -136,7 +136,12 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
             }
             dicListView.dragEnabled = true
             dicListView.dropMode=DropMode.INSERT
-            dicListView.transferHandler = ListReorderTransferHandler(dicListView)
+            val dicListTransHandler = DicListTransferHandler(dicListView)
+            dicListTransHandler.fileAddHandler = { list, dl ->
+                addPDICFiles(list, dl)
+                true
+            }
+            dicListView.transferHandler = dicListTransHandler
             scrollPane1.setViewportView(dicListView)
             rootPane.add(scrollPane1, BorderLayout.CENTER)
             val btnPanel = JPanel()
@@ -181,8 +186,7 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
 
                 val selected = fileChooser.showOpenDialog(rootPane)
                 if (selected == JFileChooser.APPROVE_OPTION) {
-                    val files = fileChooser.selectedFiles.map { it.absolutePath }
-                    addPDICFiles(files)
+                    addPDICFiles(fileChooser.selectedFiles.asList(), null)
                 }
             }
             delButton.addActionListener {
@@ -211,12 +215,13 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
 
         fun getRootComponent(): JComponent = rootPane
 
-        fun addPDICFiles(files: List<String>) {
+        fun addPDICFiles(files: List<File>, dl: JList.DropLocation?) {
             if (files.isEmpty()) {
                 return  // do nothing if empty
             }
 
-            val alreadyAddedFiles = files.filter(dicListModel::contains)
+            val filenames = files.map { it.absolutePath }
+            val alreadyAddedFiles = filenames.filter(dicListModel::contains)
             if (alreadyAddedFiles.isNotEmpty()) {
                 JOptionPane.showMessageDialog(rootPane,
                         String.format(bundle.getString("preference.dictionaries.error.already"),
@@ -224,18 +229,23 @@ class JaDicePreferencePane(diceWorker: DiceWorker) : JPanel(BorderLayout()) {
                 return
             }
 
-            val tryOpenFutures = files.map {
+            val tryOpenFutures = filenames.map {
                 this.tryToOpenPDICFile(it)
             }.toTypedArray()
             CompletableFuture.allOf(*tryOpenFutures).whenComplete { _, e ->
                 val failedFiles = tryOpenFutures.mapIndexed { i, future ->
-                    Pair(files[i], future.isCompletedExceptionally)
+                    Pair(filenames[i], future.isCompletedExceptionally)
                 }.filter { it.second }.map { it.first }
 
-                SwingUtilities.invokeAndWait {
-                    if (failedFiles.isEmpty()) {
-                        files.forEach(dicListModel::addElement)
-                    } else {
+                if (failedFiles.isEmpty()) {
+                    val index = dl?.index ?: dicListModel.size()
+                    SwingUtilities.invokeAndWait {
+                        for ((i, filename) in filenames.withIndex()) {
+                            dicListModel.insertElementAt(filename, index + i)
+                        }
+                    }
+                } else {
+                    SwingUtilities.invokeAndWait {
                         JOptionPane.showMessageDialog(rootPane,
                                 String.format(bundle.getString("preference.dictionaries.error.io"),
                                         failedFiles.joinToString(",")))

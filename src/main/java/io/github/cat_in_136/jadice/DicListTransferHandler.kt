@@ -3,19 +3,23 @@ package io.github.cat_in_136.jadice
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
+import java.io.File
 import java.io.IOException
 import javax.swing.DefaultListModel
 import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.TransferHandler
 
-class ListReorderTransferHandler(var list: JList<String>) : TransferHandler() {
+class DicListTransferHandler(var list: JList<String>) : TransferHandler() {
     val listItemFlavor = DataFlavor(list.javaClass, "item of list")
     private var srcIndex = -1
     private var dstIndex = -1
 
+    var fileAddHandler: ((List<File>, JList.DropLocation) -> Boolean)? = null
+
     override fun canImport(support: TransferSupport): Boolean {
-        return support.isDrop && support.isDataFlavorSupported(listItemFlavor)
+        return support.isDrop && (support.isDataFlavorSupported(listItemFlavor) ||
+                (fileAddHandler != null && support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)))
     }
 
     override fun createTransferable(c: JComponent): Transferable {
@@ -52,12 +56,20 @@ class ListReorderTransferHandler(var list: JList<String>) : TransferHandler() {
 
         val listModel = list.model as DefaultListModel<String>
         val dl = support.dropLocation as JList.DropLocation
-        dstIndex = dl.index
 
-        val data = runCatching { support.transferable.getTransferData(listItemFlavor) as String }
-                .getOrElse { return false }
-        listModel.add(dstIndex, data)
-        return true
+        if (support.isDataFlavorSupported(listItemFlavor)) {
+            val data = runCatching { support.transferable.getTransferData(listItemFlavor) as String }
+                    .getOrElse { return false }
+            listModel.add(dl.index, data)
+            return true
+        } else if (fileAddHandler != null && support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+            @Suppress("UNCHECKED_CAST")
+            val data = runCatching { support.transferable.getTransferData(DataFlavor.javaFileListFlavor) as List<File> }
+                    .getOrElse { return false }
+            return fileAddHandler!!(data, dl)
+        } else {
+            return false
+        }
     }
 
     override fun exportDone(c: JComponent, data: Transferable, action: Int) {
